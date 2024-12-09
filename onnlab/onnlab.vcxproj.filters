@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Interfaces">
+      <UniqueIdentifier>{83b237b5-1860-42ac-a6c1-e0e095bba0b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Reversers">
+      <UniqueIdentifier>{204b77c3-ff13-4974-9d58-7debb2caa364}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Basics_L2">
+      <UniqueIdentifier>{f3bb5f35-f4f2-4a0e-850b-984d7b3cd328}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Basics_L1">
+      <UniqueIdentifier>{8b540313-6d42-4467-9999-f0d044932aeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Misc">
+      <UniqueIdentifier>{861cd209-45fe-4fcb-b27d-0a82d1df6ba1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Learners">
+      <UniqueIdentifier>{94989769-6038-491c-a23d-dacbcd13c2f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Mods">
+      <UniqueIdentifier>{1ceb0a2f-e81e-4e19-90f7-bb5ea14bfdd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Experiments">
+      <UniqueIdentifier>{1f29e726-0630-4681-a227-e562788827ba}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="onnlab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_revB1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_3.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1hReLU_1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_4.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1hReLU_2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1hReLU_3.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_5.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_svsg1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_svsg1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NNBasicsInterfaces.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicBackPropgI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="BiasedI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="OutsErrorSetterI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicWghOptI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="InputNeuronI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="ReverseGuiderB2.h">
+      <Filter>Header Files\Reversers</Filter>
+    </ClInclude>
+    <ClInclude Include="ReverseGuiderB1.h">
+      <Filter>Header Files\Reversers</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Connection.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ReLU.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Sigmoid.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Sigmoid_spyable.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Connection_spyable.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Layer.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="FwdBackPropGuider.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="onnlab.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicLayerI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Input.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1ReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConstInput.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1hReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1hSelect.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_StraightConnection.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConnHyperGraphAggregator.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomBackPropgI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectableInputI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1h_sqReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NeuronHoldingStaticLayer.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="DenseLayerStaticConnectomHolder.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
