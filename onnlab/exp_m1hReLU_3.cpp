@@ -7,8 +7,8 @@
 #include "NNB_ConnHyperGraphAggregator.h"
 #include "NNB_Input.h"
 #include "NNB_Layer.h"
-#include "NNB_m1hReLU.h"
-#include "NNB_m1hSelect.h"
+#include "NNB_m1h_nanReLU.h"
+#include "NNB_m1h_SelectorHead.h"
 #include "NNB_ConstInput.h"
 #include "FwdBackPropGuider.h"
 
@@ -33,11 +33,11 @@ void exp_m1hReLU_3() {
 	nn::NNB_ConstInput bias;
 
 	// Hidden layer
-	nn::NNB_m1hReLU<true> ninc;
-	nn::NNB_m1hReLU<false> ndec;
+	nn::NNB_m1h_nanReLU<true> ninc;
+	nn::NNB_m1h_nanReLU<false> ndec;
 
 	// Output neuron
-	nn::NNB_m1hSelect<true> out;
+	nn::NNB_m1h_SelectorHead<true> out;
 
 	// Connections
 	nn::NNB_Connection connections[] = {

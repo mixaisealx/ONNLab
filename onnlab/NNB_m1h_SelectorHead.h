@@ -10,7 +10,7 @@
 namespace nn
 {
 	template<bool standalone>
-	class NNB_m1hSelect : public interfaces::NeuronBasicInterface, public interfaces::CustomBackPropogableInterface, public interfaces::BasicBackPropogableInterface {
+	class NNB_m1h_SelectorHead : public interfaces::NeuronBasicInterface, public interfaces::CustomBackPropogableInterface, public interfaces::BasicBackPropogableInterface {
 		float single_output;
 		float backprop_error_accumulator;
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
@@ -38,19 +38,19 @@ namespace nn
 			outputs.erase(std::remove(outputs.begin(), outputs.end(), output), outputs.end());
 		}
 
-		NNB_m1hSelect(const NNB_m1hSelect &) = delete;
-		NNB_m1hSelect &operator=(const NNB_m1hSelect &) = delete;
+		NNB_m1h_SelectorHead(const NNB_m1h_SelectorHead &) = delete;
+		NNB_m1h_SelectorHead &operator=(const NNB_m1h_SelectorHead &) = delete;
 	public:
 		const bool is_standalone = standalone;
 
-		NNB_m1hSelect() {
+		NNB_m1h_SelectorHead() {
 			single_output = 0;
 			backprop_error_accumulator = 0;
 			batch_analyzer_disabled = true;
 			single_output_index = std::numeric_limits<unsigned>::max();
 		}
 
-		~NNB_m1hSelect() override {
+		~NNB_m1h_SelectorHead() override {
 			for (auto inp : inputs) {
 				inp->~ConnectionBasicInterface();
 			}

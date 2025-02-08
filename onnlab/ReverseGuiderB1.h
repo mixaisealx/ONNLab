@@ -1,7 +1,6 @@
 #pragma once
 #include "NNBasicsInterfaces.h"
 #include "BasicLayerI.h"
-#include "Utils.h"
 
 #include <functional>
 #include <algorithm>

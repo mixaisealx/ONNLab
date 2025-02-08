@@ -7,7 +7,7 @@
 namespace nn
 {
 	template<bool direction_is_asc>
-	class NNB_m1hReLU : public interfaces::NeuronBasicInterface, public interfaces::MaccBackPropogableInterface, public interfaces::SelectableInputInterface {
+	class NNB_m1h_nanReLU : public interfaces::NeuronBasicInterface, public interfaces::MaccBackPropogableInterface, public interfaces::SelectableInputInterface {
 		float accumulator;
 		float output_value;
 		float backprop_error_accumulator;
@@ -37,18 +37,18 @@ namespace nn
 			outputs.erase(std::remove(outputs.begin(), outputs.end(), output), outputs.end());
 		}
 
-		NNB_m1hReLU(const NNB_m1hReLU &) = delete;
-		NNB_m1hReLU &operator=(const NNB_m1hReLU &) = delete;
+		NNB_m1h_nanReLU(const NNB_m1h_nanReLU &) = delete;
+		NNB_m1h_nanReLU &operator=(const NNB_m1h_nanReLU &) = delete;
 	public:
 		const bool is_asc = direction_is_asc;
 
-		NNB_m1hReLU(float negative_multiplier = 0.1f, float max_positive_out = 1.0f, float nan_correcting_epsilon = 1e-5f): negative_multiplier(negative_multiplier), max_positive_out(max_positive_out), nan_correcting_epsilon(nan_correcting_epsilon){
+		NNB_m1h_nanReLU(float negative_multiplier = 0.1f, float max_positive_out = 1.0f, float nan_correcting_epsilon = 1e-5f): negative_multiplier(negative_multiplier), max_positive_out(max_positive_out), nan_correcting_epsilon(nan_correcting_epsilon){
 			output_value = accumulator = 0;
 			backprop_error_accumulator = 0;
 			is_backprop_enabled = true;
 		}
 
-		~NNB_m1hReLU() override {
+		~NNB_m1h_nanReLU() override {
 			for (auto inp : inputs) {
 				inp->~ConnectionBasicInterface();
 			}

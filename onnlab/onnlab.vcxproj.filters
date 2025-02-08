@@ -74,15 +74,24 @@
     <ClCompile Include="exp_m1ReLU_svsg1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
+    <ClCompile Include="exp_m1ReLU_svsg2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1h_sumReLU_1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1h_sumReLU_2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_m1ReLU_svsg3.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NNBasicsInterfaces.h">
       <Filter>Header Files\Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="BasicBackPropgI.h">
-      <Filter>Header Files\Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="BiasedI.h">
       <Filter>Header Files\Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="OutsErrorSetterI.h">
@@ -118,7 +127,7 @@
     <ClInclude Include="NNB_Layer.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
+    <ClInclude Include="SimpleBitCounter.h">
       <Filter>Header Files\Misc</Filter>
     </ClInclude>
     <ClInclude Include="FwdBackPropGuider.h">
@@ -139,12 +148,6 @@
     <ClInclude Include="NNB_ConstInput.h">
       <Filter>Header Files\Basics_L1</Filter>
     </ClInclude>
-    <ClInclude Include="NNB_m1hReLU.h">
-      <Filter>Header Files\Mods</Filter>
-    </ClInclude>
-    <ClInclude Include="NNB_m1hSelect.h">
-      <Filter>Header Files\Mods</Filter>
-    </ClInclude>
     <ClInclude Include="NNB_StraightConnection.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
@@ -164,6 +167,21 @@
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
     <ClInclude Include="DenseLayerStaticConnectomHolder.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1h_nanReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1h_SelectorHead.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_m1h_SumHead.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="Monotonic2FeildsProjectingAccessory.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="SparceLayerStaticConnectomHolder2Mult.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
   </ItemGroup>

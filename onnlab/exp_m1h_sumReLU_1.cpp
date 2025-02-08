@@ -4,58 +4,59 @@
 
 #include "NNB_Connection.h"
 #include "NNB_StraightConnection.h"
-#include "NNB_ConnHyperGraphAggregator.h"
 #include "NNB_Input.h"
 #include "NNB_Layer.h"
-#include "NNB_m1h_nanReLU.h"
-#include "NNB_m1h_SelectorHead.h"
+#include "NNB_ReLU.h"
+#include "NNB_m1h_SumHead.h"
 #include "NNB_ConstInput.h"
 #include "FwdBackPropGuider.h"
 
 #include <random>
 #include <vector>
+#include <array>
 #include <tuple>
 #include <algorithm>
 
 
-void exp_m1hReLU_2() {
-	std::cout << "exp_m1hReLU_2" << std::endl;
+void exp_m1h_sumReLU_1() {
+	std::cout << "exp_m1h_sumReLU_1" << std::endl;
 
+	//std::random_device randevice;
 	std::random_device randevice;
 	std::mt19937 preudorandom(randevice());
-	std::uniform_real_distribution<float> randistributor(0.2f, 0.4f);
+	std::uniform_real_distribution<float> randistributor(-0.2f, 0.2f);
 
 	// Input vector
-	float inp[2] = { 0, 1 };
+	std::array<float, 2> inputs_store;
 
 	// Input layer
-	nn::NNB_Input in1(inp), in2(inp + 1);
+	nn::NNB_Input in1(&inputs_store[0]), in2(&inputs_store[1]);
 	nn::NNB_ConstInput bias;
 
 	// Hidden layer
-	nn::NNB_m1h_nanReLU<true> ninc;
-	nn::NNB_m1h_nanReLU<false> ndec;
+	nn::NNB_ReLU ninc;
+	nn::NNB_ReLU ndec;
 
 	// Output neuron
-	nn::NNB_m1h_SelectorHead<true> out;
+	nn::NNB_m1h_SumHead out;
 
 	// Connections
+	const float LEARNING_RATE = 0.1f;
+
 	nn::NNB_Connection connections[] = {
-		nn::NNB_Connection(&in1, &ninc),
-		nn::NNB_Connection(&in1, &ndec),
-		nn::NNB_Connection(&in2, &ninc),
-		nn::NNB_Connection(&in2, &ndec)
+		nn::NNB_Connection(&in1, &ninc, true, 0, LEARNING_RATE),
+		nn::NNB_Connection(&in1, &ndec, true, 0, LEARNING_RATE),
+		nn::NNB_Connection(&in2, &ninc, true, 0, LEARNING_RATE),
+		nn::NNB_Connection(&in2, &ndec, true, 0, LEARNING_RATE)
 	};
-	nn::NNB_Connection connections_hypergraph[] = {
-		nn::NNB_Connection(&bias, &ninc),
-		nn::NNB_Connection(&bias, &ndec)
+	nn::NNB_Connection connections_bias[] = {
+		nn::NNB_Connection(&bias, &ninc, true, 0, LEARNING_RATE),
+		nn::NNB_Connection(&bias, &ndec, true, 0, LEARNING_RATE)
 	};
-	nn::NNB_StraightConnection connections_str[] = {
+	nn::NNB_StraightConnection connections_const[] = {
 		nn::NNB_StraightConnection(&ninc, &out),
 		nn::NNB_StraightConnection(&ndec, &out)
 	};
-
-	nn::NNB_ConnHyperGraphAggregator bias_hpg({ &connections_hypergraph[0], &connections_hypergraph[1] });
 
 	// Perfect result storage
 	std::vector<float> perfect_out({ 0 });
@@ -63,16 +64,13 @@ void exp_m1hReLU_2() {
 	nn::NNB_Layer layer1({ &ninc, &ndec });
 	nn::NNB_Layer layer2({ &out });
 
-	// Initialising connections
+	// Initializing connections
 	for (auto &conn : connections) {
 		conn.Weight(randistributor(preudorandom));
 	}
-	// Initialising bias
-	for (auto &conn : connections_hypergraph) {
-		//conn.Weight(randistributor(preudorandom));
-		conn.Weight(-0.2f);
+	for (auto &conn : connections_bias) {
+		conn.Weight(randistributor(preudorandom));
 	}
-	bias_hpg.DoWeightsProcessing();
 
 	// Train data
 	struct datarow {
@@ -92,27 +90,25 @@ void exp_m1hReLU_2() {
 	nn::FwdBackPropGuider learnguider({ &layer1, &layer2 }, &nerr_setter);
 
 	std::uniform_int_distribution<unsigned> testselector(0, 3);
-	for (size_t iterations = 0; iterations < 100; ++iterations) {
+	for (size_t iterations = 0; iterations < 200; ++iterations) {
 		// Select datarow
 		const auto &row = traindata[testselector(preudorandom)];
-		//const auto &row = traindata[0];
 
 		// Update inputs
-		inp[0] = row.input[0];
-		inp[1] = row.input[1];
+		inputs_store[0] = row.input[0];
+		inputs_store[1] = row.input[1];
 		perfect_out[0] = row.output;
 
 		learnguider.DoForward();
 		learnguider.FillupOutsError(perfect_out);
 		learnguider.DoBackward();
-		bias_hpg.DoWeightsProcessing();
 	}
 
 	std::vector<std::tuple<float, float>> results;
 	for (const auto &sample : traindata) {
 		// Update inputs
-		inp[0] = sample.input[0];
-		inp[1] = sample.input[1];
+		inputs_store[0] = sample.input[0];
+		inputs_store[1] = sample.input[1];
 
 		// Output layer forward
 		learnguider.DoForward();

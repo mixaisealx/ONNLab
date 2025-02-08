@@ -61,4 +61,10 @@ namespace nn::interfaces
 
 	using NBI = NeuronBasicInterface;
 	using CBI = ConnectionBasicInterface;
+
+	template<typename T>
+	concept NeuronInherit = std::is_base_of<nn::interfaces::NeuronBasicInterface, T>::value;
+
+	template<typename T>
+	concept ConnectionInherit = std::is_base_of<nn::interfaces::ConnectionBasicInterface, T>::value;
 }

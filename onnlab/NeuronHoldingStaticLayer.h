@@ -1,4 +1,5 @@
 #pragma once
+#include "NNBasicsInterfaces.h"
 #include "BasicLayerI.h"
 
 #include <cstdlib>
@@ -9,10 +10,7 @@
 
 namespace nn
 {
-	template<typename T>
-	concept NeuronInherit = std::is_base_of<nn::interfaces::NBI, T>::value;
-
-	template<NeuronInherit NeuronT>
+	template<interfaces::NeuronInherit NeuronT>
 	class NeuronHoldingStaticLayer : public interfaces::BasicLayerInterface {
 		NeuronT *storage_base, *storage_end;
 		std::vector<interfaces::NBI *> neuronsI;

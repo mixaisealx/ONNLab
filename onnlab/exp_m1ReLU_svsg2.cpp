@@ -4,8 +4,10 @@
 
 #include "NNB_Connection_spyable.h"
 #include "NNB_ReLU.h"
+#include "NNB_m1ReLU.h"
 #include "NNB_Input.h"
 #include "NNB_Layer.h"
+#include "NNB_ConstInput.h"
 #include "FwdBackPropGuider.h"
 #include "DenseLayerStaticConnectomHolder.h"
 #include "NeuronHoldingStaticLayer.h"
@@ -14,10 +16,11 @@
 #include <vector>
 #include <array>
 #include <tuple>
+#include <map>
+#include <algorithm>
 
-
-void exp_ReLU_svsg1() {
-	std::cout << "exp_ReLU_svsg1" << std::endl;
+void exp_m1ReLU_svsg2() {
+	std::cout << "exp_m1ReLU_svsg2" << std::endl;
 
 	//std::random_device randevice;
 	std::mt19937 preudorandom(42);
@@ -27,27 +30,27 @@ void exp_ReLU_svsg1() {
 	// Input vector
 	std::array<float, 7> inputs_store;
 
+	// Bias layer
+	nn::NeuronHoldingStaticLayer<nn::NNB_ConstInput> layer_bias(1, [&](nn::NNB_ConstInput *const mem_ptr, unsigned index) {
+		new(mem_ptr)nn::NNB_ConstInput();
+	});
+
 	// Input layer
 	nn::NeuronHoldingStaticLayer<nn::NNB_Input> layer_inp(7, [&](nn::NNB_Input *const mem_ptr, unsigned index) {
 		new(mem_ptr)nn::NNB_Input(&inputs_store[index]);
 	});
 
-	// Hidden layer 1
-	nn::NeuronHoldingStaticLayer<nn::NNB_ReLU> layer_relu1(6, [&](nn::NNB_ReLU *const mem_ptr, unsigned) {
-		new(mem_ptr)nn::NNB_ReLU();
-	});
-
 	// Output layer
 	nn::NeuronHoldingStaticLayer<nn::NNB_ReLU> layer_out(11, [&](nn::NNB_ReLU *const mem_ptr, unsigned) {
-		new(mem_ptr)nn::NNB_ReLU();
+		new(mem_ptr)nn::NNB_ReLU;
 	});
 
 	// Connections
-	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_inp_lr1(&layer_inp, &layer_relu1, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
+	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_out(&layer_bias, &layer_out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
 		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
 	});
 
-	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_lr1_out(&layer_relu1, &layer_out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
+	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_lr1_out(&layer_inp, &layer_out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
 		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
 	});
 
@@ -102,18 +105,22 @@ void exp_ReLU_svsg1() {
 
 	nn::BasicOutsErrorSetter::ErrorCalcSoftMAX softmax_calculator;
 	nn::BasicOutsErrorSetter nerr_setter(&softmax_calculator, 11);
-	nn::FwdBackPropGuider learnguider({ &layer_inp, &layer_relu1, &layer_out}, &nerr_setter);
+	nn::FwdBackPropGuider learnguider({ &layer_inp, &layer_out}, &nerr_setter);
 
 	std::uniform_int_distribution<unsigned> testselector(0, traindata.size() - 1);
-	for (size_t iterations = 0; iterations < 5000; ++iterations) {
+
+	std::map<const datarow *, std::vector<nn::NNB_m1ReLU *>> flippers;
+
+	for (size_t iterations = 0; iterations < 250; ++iterations) {
 		// Select datarow
 		const datarow *row = nullptr;
-		if (randistributor_int(preudorandom)) {
+		row = &traindata[testselector(preudorandom)];
+		/*if (randistributor_int(preudorandom)) {
 			row = &traindata[testselector(preudorandom)];
 		} else {
 			FillUpWrongRow();
 			row = &wrong_row;
-		}
+		}*/
 
 		// Update inputs
 		std::copy(row->inputs.begin(), row->inputs.end(), inputs_store.begin());
@@ -123,8 +130,63 @@ void exp_ReLU_svsg1() {
 		learnguider.DoForward();
 		learnguider.FillupOutsError(perfect_out);
 		learnguider.DoBackward();
+
+		/*if (iterations < 300 && (iterations + 1) % 3 == 0) {
+			for (auto &nrn : layer_out.NeuronsInside()) {
+				nrn.BatchAnalyzer_Reset();
+				nrn.BatchAnalyzer_SetDataPayloadPtrSource(reinterpret_cast<const void **>(&row));
+				nrn.BatchAnalyzer_SetState(true);
+			}
+
+			for (auto &itm : traindata) {
+				std::copy(row->inputs.begin(), row->inputs.end(), inputs_store.begin());
+				learnguider.DoForward();
+			}
+
+			for (auto &nrn : layer_out.NeuronsInside()) {
+				nrn.BatchAnalyzer_SetState(false);
+				auto &ref = nrn.BatchAnalyzer_GetFeildsActivateMinDistance();
+				float distance = std::max(ref[0], ref[1]);
+				if (distance > 1e-7f) { // The feild has not met && distance to another feild not so big
+					const datarow *row = reinterpret_cast<const datarow *>(nrn.BatchAnalyzer_GetFeildsActivateMinDistanceDropOnPayload()[ref[0] < ref[1]]);
+					flippers[row].push_back(&nrn);
+				}
+			}
+
+			for (auto &set : flippers) {
+				std::copy(set.first->inputs.begin(), set.first->inputs.end(), inputs_store.begin());
+				learnguider.DoForward();
+				for (auto nrn : set.second) {
+					nrn->FlipCurrentInputToAnotherFeild(); // Moving current input processing to another part of activaiton function
+				}
+			}
+		}*/
 	}
 
+	// Non-monotonity usage stats: minus_count, plus_count, min, summ, max
+	std::map<const nn::NNB_m1ReLU*, std::tuple<unsigned, unsigned, float, float, float>> fu_both_neurons;
+
+	auto NonMonotonityStatProc = [&](nn::NNB_m1ReLU &nrn) {
+		auto iter = fu_both_neurons.find(&nrn);
+		if (iter != fu_both_neurons.end()) {
+			if (nrn.OwnAccumulatorValue() < 0) {
+				++std::get<0>(iter->second);
+			} else {
+				++std::get<1>(iter->second);
+			}
+			std::get<3>(iter->second) += nrn.OwnAccumulatorValue();
+			if (nrn.OwnAccumulatorValue() < std::get<2>(iter->second)) {
+				std::get<2>(iter->second) = nrn.OwnAccumulatorValue();
+			} else if (nrn.OwnAccumulatorValue() > std::get<4>(iter->second)) {
+				std::get<4>(iter->second) = nrn.OwnAccumulatorValue();
+			}
+		} else {
+			bool minus = nrn.OwnAccumulatorValue() < 0;
+			fu_both_neurons.emplace(&nrn, std::make_tuple((unsigned)(minus), (unsigned)(!minus), nrn.OwnAccumulatorValue(), nrn.OwnAccumulatorValue(), nrn.OwnAccumulatorValue()));
+		}
+	};
+
+	// Inferencing
 	std::vector<std::tuple<unsigned, std::tuple<unsigned, float>, std::tuple<unsigned, float>>> results;
 	for (const auto &sample : traindata) {
 		// Update inputs
@@ -156,6 +218,15 @@ void exp_ReLU_svsg1() {
 			}
 		}
 		results.push_back(std::make_tuple(perfect_ans, std::make_tuple(idx, max), std::make_tuple(idx2, max2)));
+
+		// Grab non-monotonity stat
+		/*for (auto &nrn : layer_out.NeuronsInside()) {
+			NonMonotonityStatProc(nrn);
+		}*/
+	}
+
+	for (auto &iter : fu_both_neurons) {
+		std::get<3>(iter.second) /= std::get<0>(iter.second) + std::get<1>(iter.second);
 	}
 
 	for (const auto &tpl : results) {

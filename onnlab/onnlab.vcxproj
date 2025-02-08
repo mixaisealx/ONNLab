@@ -134,12 +134,16 @@
     <ClCompile Include="exp_m1hReLU_1.cpp" />
     <ClCompile Include="exp_m1hReLU_2.cpp" />
     <ClCompile Include="exp_m1hReLU_3.cpp" />
+    <ClCompile Include="exp_m1h_sumReLU_1.cpp" />
+    <ClCompile Include="exp_m1h_sumReLU_2.cpp" />
     <ClCompile Include="exp_m1ReLU_1.cpp" />
     <ClCompile Include="exp_m1ReLU_2.cpp" />
     <ClCompile Include="exp_m1ReLU_3.cpp" />
     <ClCompile Include="exp_m1ReLU_4.cpp" />
     <ClCompile Include="exp_m1ReLU_5.cpp" />
     <ClCompile Include="exp_m1ReLU_svsg1.cpp" />
+    <ClCompile Include="exp_m1ReLU_svsg2.cpp" />
+    <ClCompile Include="exp_m1ReLU_svsg3.cpp" />
     <ClCompile Include="exp_ReLU.cpp" />
     <ClCompile Include="exp_ReLU_revB1.cpp" />
     <ClCompile Include="exp_ReLU_svsg1.cpp" />
@@ -147,20 +151,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DenseLayerStaticConnectomHolder.h" />
+    <ClInclude Include="Monotonic2FeildsProjectingAccessory.h" />
     <ClInclude Include="NeuronHoldingStaticLayer.h" />
+    <ClInclude Include="NNB_m1h_SumHead.h" />
     <ClInclude Include="NNB_m1h_sqReLU.h" />
     <ClInclude Include="SelectableInputI.h" />
     <ClInclude Include="CustomBackPropgI.h" />
     <ClInclude Include="NNB_ConnHyperGraphAggregator.h" />
     <ClInclude Include="NNB_ConstInput.h" />
     <ClInclude Include="NNB_Input.h" />
-    <ClInclude Include="NNB_m1hSelect.h" />
+    <ClInclude Include="NNB_m1h_SelectorHead.h" />
     <ClInclude Include="NNB_m1ReLU.h" />
     <ClInclude Include="BasicLayerI.h" />
     <ClInclude Include="BasicBackPropgI.h" />
     <ClInclude Include="BasicWghOptI.h" />
-    <ClInclude Include="BiasedI.h" />
-    <ClInclude Include="NNB_m1hReLU.h" />
+    <ClInclude Include="NNB_m1h_nanReLU.h" />
     <ClInclude Include="NNB_StraightConnection.h" />
     <ClInclude Include="onnlab.h" />
     <ClInclude Include="FwdBackPropGuider.h" />
@@ -175,7 +180,8 @@
     <ClInclude Include="OutsErrorSetterI.h" />
     <ClInclude Include="ReverseGuiderB1.h" />
     <ClInclude Include="ReverseGuiderB2.h" />
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="SimpleBitCounter.h" />
+    <ClInclude Include="SparceLayerStaticConnectomHolder2Mult.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

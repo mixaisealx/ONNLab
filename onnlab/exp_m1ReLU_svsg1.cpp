@@ -51,18 +51,18 @@ void exp_m1ReLU_svsg1() {
 
 	// Connections
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_lr1(&layer_bias, &layer_relu1, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection(from, to, 0.1f, -10.0f);
+		new(mem_ptr)nn::NNB_Connection(from, to, -10.0f);
 	});
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_out(&layer_bias, &layer_out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection(from, to, 0.1f, -10.0f);
+		new(mem_ptr)nn::NNB_Connection(from, to, -10.0f);
 	});
 
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_inp_lr1(&layer_inp, &layer_relu1, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection(from, to, 0.1f, randistributor(preudorandom));
+		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
 	});
 
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_lr1_out(&layer_relu1, &layer_out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection(from, to, 0.1f, randistributor(preudorandom));
+		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
 	});
 
 	// Train data
@@ -187,6 +187,30 @@ void exp_m1ReLU_svsg1() {
 		}
 	}
 
+	// Non-monotonity usage stats: minus_count, plus_count, min, summ, max
+	std::map<const nn::NNB_m1ReLU*, std::tuple<unsigned, unsigned, float, float, float>> fu_both_neurons;
+
+	auto NonMonotonityStatProc = [&](nn::NNB_m1ReLU &nrn) {
+		auto iter = fu_both_neurons.find(&nrn);
+		if (iter != fu_both_neurons.end()) {
+			if (nrn.OwnAccumulatorValue() < 0) {
+				++std::get<0>(iter->second);
+			} else {
+				++std::get<1>(iter->second);
+			}
+			std::get<3>(iter->second) += nrn.OwnAccumulatorValue();
+			if (nrn.OwnAccumulatorValue() < std::get<2>(iter->second)) {
+				std::get<2>(iter->second) = nrn.OwnAccumulatorValue();
+			} else if (nrn.OwnAccumulatorValue() > std::get<4>(iter->second)) {
+				std::get<4>(iter->second) = nrn.OwnAccumulatorValue();
+			}
+		} else {
+			bool minus = nrn.OwnAccumulatorValue() < 0;
+			fu_both_neurons.emplace(&nrn, std::make_tuple((unsigned)(minus), (unsigned)(!minus), nrn.OwnAccumulatorValue(), nrn.OwnAccumulatorValue(), nrn.OwnAccumulatorValue()));
+		}
+	};
+
+	// Inferencing
 	std::vector<std::tuple<unsigned, std::tuple<unsigned, float>, std::tuple<unsigned, float>>> results;
 	for (const auto &sample : traindata) {
 		// Update inputs
@@ -218,6 +242,18 @@ void exp_m1ReLU_svsg1() {
 			}
 		}
 		results.push_back(std::make_tuple(perfect_ans, std::make_tuple(idx, max), std::make_tuple(idx2, max2)));
+
+		// Grab non-monotonity stat
+		for (auto &nrn : layer_relu1.NeuronsInside()) {
+			NonMonotonityStatProc(nrn);
+		}
+		for (auto &nrn : layer_out.NeuronsInside()) {
+			NonMonotonityStatProc(nrn);
+		}
+	}
+
+	for (auto &iter : fu_both_neurons) {
+		std::get<3>(iter.second) /= std::get<0>(iter.second) + std::get<1>(iter.second);
 	}
 
 	for (const auto &tpl : results) {
