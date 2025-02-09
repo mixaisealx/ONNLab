@@ -144,6 +144,7 @@
     <ClCompile Include="exp_m1ReLU_svsg1.cpp" />
     <ClCompile Include="exp_m1ReLU_svsg2.cpp" />
     <ClCompile Include="exp_m1ReLU_svsg3.cpp" />
+    <ClCompile Include="exp_m1ReLU_svsg4.cpp" />
     <ClCompile Include="exp_ReLU.cpp" />
     <ClCompile Include="exp_ReLU_revB1.cpp" />
     <ClCompile Include="exp_ReLU_svsg1.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="DenseLayerStaticConnectomHolder.h" />
     <ClInclude Include="Monotonic2FeildsProjectingAccessory.h" />
     <ClInclude Include="NeuronHoldingStaticLayer.h" />
+    <ClInclude Include="NNB_Linear.h" />
     <ClInclude Include="NNB_m1h_SumHead.h" />
     <ClInclude Include="NNB_m1h_sqReLU.h" />
     <ClInclude Include="NNB_LayersAggregator.h" />
@@ -183,6 +185,7 @@
     <ClInclude Include="ReverseGuiderB2.h" />
     <ClInclude Include="SimpleBitCounter.h" />
     <ClInclude Include="SparceLayerStaticConnectomHolder2Mult.h" />
+    <ClInclude Include="SparceLayerStaticConnectomHolderOneToOne.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

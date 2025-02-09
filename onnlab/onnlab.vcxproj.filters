@@ -86,6 +86,9 @@
     <ClCompile Include="exp_m1ReLU_svsg3.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
+    <ClCompile Include="exp_m1ReLU_svsg4.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NNBasicsInterfaces.h">
@@ -182,6 +185,15 @@
       <Filter>Header Files\Misc</Filter>
     </ClInclude>
     <ClInclude Include="SparceLayerStaticConnectomHolder2Mult.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Linear.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="SparceLayerStaticConnectomHolderOneToOne.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_LayersAggregator.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
   </ItemGroup>

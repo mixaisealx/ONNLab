@@ -1,18 +1,16 @@
 #pragma once
 #include "NNBasicsInterfaces.h"
 #include "BasicBackPropgI.h"
-#include "CustomBackPropgI.h"
-#include "SelectableInputI.h"
 
 #include <vector>
 #include <algorithm>
 
 namespace nn
 {
-	template<bool do_mangle = false, float scale = 1.0f, float offset = 0.0f>
-	class NNB_m1h_SumHeadT : public interfaces::NeuronBasicInterface, public interfaces::BasicBackPropogableInterface {
+	class NNB_Linear : public interfaces::NeuronBasicInterface, public interfaces::BasicBackPropogableInterface {
 		float accumulator;
 		float backprop_error_accumulator;
+		const float scale, offset;
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 		std::vector<interfaces::ConnectionBasicInterface *> inputs;
 
@@ -32,15 +30,15 @@ namespace nn
 			outputs.erase(std::remove(outputs.begin(), outputs.end(), output), outputs.end());
 		}
 
-		NNB_m1h_SumHeadT(const NNB_m1h_SumHeadT &) = delete;
-		NNB_m1h_SumHeadT &operator=(const NNB_m1h_SumHeadT &) = delete;
+		NNB_Linear(const NNB_Linear &) = delete;
+		NNB_Linear &operator=(const NNB_Linear &) = delete;
 	public:
-		NNB_m1h_SumHeadT() {
+		NNB_Linear(float scale = 1.0f, float offset = 0.0f):scale(scale), offset(offset) {
 			accumulator = 0;
 			backprop_error_accumulator = 0;
 		}
 
-		~NNB_m1h_SumHeadT() override {
+		~NNB_Linear() override {
 			for (auto inp : inputs) {
 				inp->~ConnectionBasicInterface();
 			}
@@ -61,30 +59,19 @@ namespace nn
 		}
 
 		float ActivationFunction(float x) const override {
-			if constexpr (!do_mangle) {
-				return x;
-			} else {
-				return x * scale + offset;
-			}
+			return x * scale + offset;
 		}
 
 		float ActivationFunctionDerivative(float x) const override {
-			if constexpr (!do_mangle) {
-				return 1.0f;
-			} else {
-				return scale;
-			}
+			return scale;
 		}
 
 		void UpdateOwnLevel() override {
 			accumulator = 0;
 			for (const auto inp : inputs) {
-				accumulator += inp->From()->OwnLevel();
+				accumulator += inp->From()->OwnLevel() * inp->Weight();
 			}
-
-			if constexpr (do_mangle) {
-				accumulator = ActivationFunction(accumulator);
-			}
+			accumulator = ActivationFunction(accumulator);
 		}
 
 		float OwnLevel() override {
@@ -103,6 +90,4 @@ namespace nn
 			return backprop_error_accumulator;
 		}
 	};
-
-	using NNB_m1h_SumHead = NNB_m1h_SumHeadT<>;
 }
