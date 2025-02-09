@@ -155,6 +155,7 @@
     <ClInclude Include="NeuronHoldingStaticLayer.h" />
     <ClInclude Include="NNB_m1h_SumHead.h" />
     <ClInclude Include="NNB_m1h_sqReLU.h" />
+    <ClInclude Include="NNB_LayersAggregator.h" />
     <ClInclude Include="SelectableInputI.h" />
     <ClInclude Include="CustomBackPropgI.h" />
     <ClInclude Include="NNB_ConnHyperGraphAggregator.h" />

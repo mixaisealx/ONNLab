@@ -11,11 +11,13 @@ namespace nn::utils
 		using ProjectorTwoToOne = void(interfaces::NBI *const non_monotonic, const interfaces::NBI *const equvivalent_1, const interfaces::NBI *const equvivalent_2);
 		using ProjectorOneToTwo = void(const interfaces::NBI *const non_monotonic, interfaces::NBI *const equvivalent_1, interfaces::NBI *const equvivalent_2);
 
+		enum LayerAlignment { MOD2, HALF };
 
 		inline Monotonic2FeildsProjectingAccessory(interfaces::BasicLayerInterface *non_monothonic_layer,
 											interfaces::BasicLayerInterface *monothonic_equvivalent_layer,
 											std::function<ProjectorTwoToOne> projector2to1,
-											std::function<ProjectorOneToTwo> projector1to2):projector2to1(projector2to1), projector1to2(projector1to2) {
+											std::function<ProjectorOneToTwo> projector1to2,
+											LayerAlignment alignment = LayerAlignment::HALF):projector2to1(projector2to1), projector1to2(projector1to2) {
 			unsigned mnls = non_monothonic_layer->Neurons().size();
 
 			if (monothonic_equvivalent_layer->Neurons().size() != mnls * 2)
@@ -24,8 +26,14 @@ namespace nn::utils
 			auto &vec_nmn = non_monothonic_layer->Neurons();
 			auto &vec_men = monothonic_equvivalent_layer->Neurons();
 
-			for (unsigned i = 0; i != mnls; ++i) {
-				eqviv.emplace_back(Equvivalence{ vec_nmn[i] , vec_men[i << 1], vec_men[(i << 1) + 1] });
+			if (alignment == LayerAlignment::HALF) {
+				for (unsigned i = 0; i != mnls; ++i) {
+					eqviv.emplace_back(Equvivalence{ vec_nmn[i] , vec_men[i], vec_men[mnls + i] });
+				}
+			} else {
+				for (unsigned i = 0; i != mnls; ++i) {
+					eqviv.emplace_back(Equvivalence{ vec_nmn[i] , vec_men[i << 1], vec_men[(i << 1) + 1] });
+				}
 			}
 		}
 

@@ -8,6 +8,7 @@
 #include "NNB_m1ReLU.h"
 #include "NNB_Input.h"
 #include "NNB_Layer.h"
+#include "NNB_LayersAggregator.h"
 #include "NNB_ConstInput.h"
 #include "NNB_m1h_SumHead.h"
 #include "FwdBackPropGuider.h"
@@ -31,6 +32,7 @@ void exp_m1ReLU_svsg3() {
 	//std::random_device randevice;
 	std::mt19937 preudorandom(42);
 	std::uniform_real_distribution<float> randistributor(0.2f, 0.4f);
+	std::uniform_real_distribution<float> randistributor_small(0.001f, 0.1f);
 	std::uniform_int_distribution<unsigned short> randistributor_int(0, 1);
 
 	// Input vector
@@ -52,27 +54,38 @@ void exp_m1ReLU_svsg3() {
 	});
 
 	// Equvivelent ReLU layer 
-	nn::NeuronHoldingStaticLayer<nn::NNB_ReLU> layer_rleq(22, [&](nn::NNB_ReLU *const mem_ptr, unsigned) {
+	nn::NeuronHoldingStaticLayer<nn::NNB_ReLU> layer_rleq_inc(11, [&](nn::NNB_ReLU *const mem_ptr, unsigned) { // Increasing (__/)
+		new(mem_ptr)nn::NNB_ReLU;
+	});
+	nn::NeuronHoldingStaticLayer<nn::NNB_ReLU> layer_rleq_dec(11, [&](nn::NNB_ReLU *const mem_ptr, unsigned) { // Decreasing (\__)
 		new(mem_ptr)nn::NNB_ReLU;
 	});
 	nn::NeuronHoldingStaticLayer<nn::NNB_m1h_SumHead> layer_smout(11, [&](nn::NNB_m1h_SumHead *const mem_ptr, unsigned) {
 		new(mem_ptr)nn::NNB_m1h_SumHead;
 	});
 
+	nn::NNB_LayersAggregator layer_rleq({ &layer_rleq_inc, &layer_rleq_dec });
+
 	// Connections
 	// Bias
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_m1out(&layer_bias, &layer_m1out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
 		new(mem_ptr)nn::NNB_Connection(from, to, -M1_MAX_VALUE);
 	});
-	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_rleq(&layer_bias, &layer_rleq, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
+	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_rleqi(&layer_bias, &layer_rleq_inc, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
+		new(mem_ptr)nn::NNB_Connection(from, to, -randistributor_small(preudorandom));
+	});
+	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_bias_rleqd(&layer_bias, &layer_rleq_dec, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
+		new(mem_ptr)nn::NNB_Connection(from, to, randistributor_small(preudorandom));
 	});
 	// Input to
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_in_m1out(&layer_inp, &layer_m1out, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
 		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
 	});
-	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_in_rleq(&layer_inp, &layer_rleq, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
+	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_in_rleqi(&layer_inp, &layer_rleq_inc, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
 		new(mem_ptr)nn::NNB_Connection(from, to, randistributor(preudorandom));
+	});
+	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection> connections_in_rleqd(&layer_inp, &layer_rleq_dec, [&](nn::NNB_Connection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
+		new(mem_ptr)nn::NNB_Connection(from, to, -randistributor(preudorandom));
 	});
 	// Equvivelent head
 	nn::SparceLayerStaticConnectomHolder2Mult<nn::NNB_StraightConnection> connections_rleq_smout(&layer_rleq, &layer_smout, [&](nn::NNB_StraightConnection *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
@@ -233,7 +246,7 @@ void exp_m1ReLU_svsg3() {
 
 	bool stand_learn = true;
 
-	for (size_t iterations = 0; iterations < 5000; ++iterations) {
+	for (size_t iterations = 0; iterations < 3300; ++iterations) {
 		// Select datarow
 		const datarow *row = nullptr;
 		//row = &traindata[testselector(preudorandom)];
@@ -259,18 +272,17 @@ void exp_m1ReLU_svsg3() {
 			learnguider_m1.DoBackward();
 		}
 
-		if (!((iterations + 1) % 1500) && iterations < 2000) {
-			if (stand_learn) {
-				projector_rl_m1.Perform2to1LossyCompression();
-			} else {
-				projector_rl_m1.Perform1to2DiffTransfer();
-			}
-			stand_learn = !stand_learn;
-		}
+		if (iterations == 800) {
+			projector_rl_m1.Perform2to1LossyCompression();
+			stand_learn = false;
+		} /*else if (iterations == 2000) {
+			projector_rl_m1.Perform1to2DiffTransfer();
+			stand_learn = true;
+		}*/
 	}
 
 	// Non-monotonity usage stats: minus_count, plus_count, min, summ, max
-	std::map<const nn::NNB_m1ReLU*, std::tuple<unsigned, unsigned, float, float, float>> fu_both_neurons;
+	std::map<const nn::NNB_m1ReLU *, std::tuple<unsigned, unsigned, float, float, float>> fu_both_neurons;
 
 	auto NonMonotonityStatProc = [&](nn::NNB_m1ReLU &nrn) {
 		auto iter = fu_both_neurons.find(&nrn);

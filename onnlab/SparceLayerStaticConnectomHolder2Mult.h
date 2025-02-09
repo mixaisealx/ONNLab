@@ -17,9 +17,12 @@ namespace nn
 	public:
 		using ConnectionEmplacer = void(ConnectionT*const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to);
 
+		enum LayerAlignment { MOD2, HALF };
+
 		SparceLayerStaticConnectomHolder2Mult(interfaces::BasicLayerInterface *layer1,
 								  interfaces::BasicLayerInterface *layer2,
-								  std::function<ConnectionEmplacer> emplacer) {
+								  std::function<ConnectionEmplacer> emplacer,
+								  LayerAlignment alignment = LayerAlignment::HALF) {
 			
 			if (layer1->Neurons().size() != layer2->Neurons().size() * 2)
 				throw std::logic_error("Count of neurons in layer1 must be 2 times bigger than in layer2!");
@@ -30,12 +33,24 @@ namespace nn
 
 			ConnectionT *mem_ptr = storage_base;
 
-			auto iter = layer1->Neurons().cbegin();
-			for (auto to : layer2->Neurons()) {
-				for (uint8_t i = 2; i; --i) {
-					emplacer(mem_ptr, *iter, to);
-					++iter;
+			if (alignment == LayerAlignment::HALF) {
+				auto &from = layer1->Neurons();
+				auto &to = layer2->Neurons();
+				unsigned outsz = layer2->Neurons().size();
+				for (unsigned i = 0; i != outsz; ++i) {
+					emplacer(mem_ptr, from[i], to[i]);
 					++mem_ptr;
+					emplacer(mem_ptr, from[outsz + i], to[i]);
+					++mem_ptr;
+				}
+			} else {
+				auto iter = layer1->Neurons().cbegin();
+				for (auto to : layer2->Neurons()) {
+					for (uint8_t i = 2; i; --i) {
+						emplacer(mem_ptr, *iter, to);
+						++iter;
+						++mem_ptr;
+					}
 				}
 			}
 			
