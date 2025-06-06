@@ -22,7 +22,7 @@ namespace nn::interfaces
 		virtual const std::vector<ConnectionBasicInterface *> &OutputConnections() = 0;
 
 		virtual void UpdateOwnLevel() = 0;
-		virtual float OwnLevel() = 0;
+		virtual float OwnLevel(unsigned data_channel = 0) = 0;
 
 		virtual bool IsTrainable() = 0;
 

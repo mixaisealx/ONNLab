@@ -3,57 +3,55 @@
 #include <vector>
 #include <algorithm>
 
-namespace nn::utils
-{
-	class SimpleBitCounter {
-		std::vector<uint64_t> storage;
-	public:
-		SimpleBitCounter(uint16_t items_count = 1U, bool initial_state = false) {
-			storage = std::vector<uint64_t>((items_count >> 6) + static_cast<bool>(items_count & 0x3F), (initial_state ? UINT64_MAX : 0));
-		}
 
-		void FillWith(bool initial_state = false) {
-			std::fill(storage.begin(), storage.end(), (initial_state ? UINT64_MAX : 0));
-		}
+class SimpleBitCounter {
+	std::vector<uint64_t> storage;
+public:
+	SimpleBitCounter(uint16_t items_count = 1U, bool initial_state = false) {
+		storage = std::vector<uint64_t>((items_count >> 6) + static_cast<bool>(items_count & 0x3F), (initial_state ? UINT64_MAX : 0));
+	}
 
-		uint16_t Capacity() const {
-			return storage.size() << 6;
-		}
+	void FillWith(bool initial_state = false) {
+		std::fill(storage.begin(), storage.end(), (initial_state ? UINT64_MAX : 0));
+	}
 
-		uint64_t Word(uint16_t index) const {
-			return storage[index];
-		}
+	uint16_t Capacity() const {
+		return storage.size() << 6;
+	}
 
-		void Word(uint16_t index, uint64_t word) {
-			storage[index] = word;
-		}
+	uint64_t Word(uint16_t index) const {
+		return storage[index];
+	}
 
-		bool operator[] (uint16_t index) const {
-			return storage[index >> 6] & (static_cast<uint64_t>(0x1) << (index & 0x3F));
-		}
+	void Word(uint16_t index, uint64_t word) {
+		storage[index] = word;
+	}
 
-		bool GetBit(uint16_t index) const {
-			return this->operator[](index);
-		}
+	bool operator[] (uint16_t index) const {
+		return storage[index >> 6] & (static_cast<uint64_t>(0x1) << (index & 0x3F));
+	}
 
-		void SetBit(uint16_t index, bool bit) {
-			uint64_t value = static_cast<uint64_t>(bit) << (index & 0x3F);
-			uint64_t &store = storage[index >> 6];
-			store = (store & ~value) | value;
-		}
+	bool GetBit(uint16_t index) const {
+		return this->operator[](index);
+	}
 
-		void PlusOne() {
-			//bool carry = true;
-			for (auto &item : storage) {
-				if (item != UINT64_MAX) {
-					++item;
-					//carry = false;
-					break;
-				} else {
-					item = 0;
-					//carry = true;
-				}
+	void SetBit(uint16_t index, bool bit) {
+		uint64_t value = static_cast<uint64_t>(bit) << (index & 0x3F);
+		uint64_t &store = storage[index >> 6];
+		store = (store & ~value) | value;
+	}
+
+	void PlusOne() {
+		//bool carry = true;
+		for (auto &item : storage) {
+			if (item != UINT64_MAX) {
+				++item;
+				//carry = false;
+				break;
+			} else {
+				item = 0;
+				//carry = true;
 			}
 		}
-	};
-}
+	}
+};

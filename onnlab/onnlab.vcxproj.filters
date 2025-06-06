@@ -9,9 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Header Files\Interfaces">
-      <UniqueIdentifier>{83b237b5-1860-42ac-a6c1-e0e095bba0b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Reversers">
       <UniqueIdentifier>{204b77c3-ff13-4974-9d58-7debb2caa364}</UniqueIdentifier>
     </Filter>
@@ -33,12 +30,18 @@
     <Filter Include="Source Files\Experiments">
       <UniqueIdentifier>{1f29e726-0630-4681-a227-e562788827ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Interfaces">
+      <UniqueIdentifier>{83b237b5-1860-42ac-a6c1-e0e095bba0b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\System">
+      <UniqueIdentifier>{955089d7-cd4b-4a9d-b41d-e61537ddedb2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="onnlab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_1.cpp">
+    <ClCompile Include="exp_nm1ReLU_1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
     <ClCompile Include="exp_ReLU.cpp">
@@ -47,46 +50,103 @@
     <ClCompile Include="exp_ReLU_revB1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_2.cpp">
+    <ClCompile Include="exp_nm1ReLU_2.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_3.cpp">
+    <ClCompile Include="exp_nm1ReLU_3.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1hReLU_1.cpp">
+    <ClCompile Include="exp_nm1hReLU_1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_4.cpp">
+    <ClCompile Include="exp_nm1ReLU_4.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1hReLU_2.cpp">
+    <ClCompile Include="exp_nm1hReLU_2.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1hReLU_3.cpp">
+    <ClCompile Include="exp_nm1hReLU_3.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_5.cpp">
+    <ClCompile Include="exp_nm1ReLU_5.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
     <ClCompile Include="exp_ReLU_svsg1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_svsg1.cpp">
+    <ClCompile Include="exp_nm1ReLU_svsg1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_svsg2.cpp">
+    <ClCompile Include="exp_nm1ReLU_svsg2.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1h_sumReLU_1.cpp">
+    <ClCompile Include="exp_nm1h_sumReLU_1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1h_sumReLU_2.cpp">
+    <ClCompile Include="exp_nm1h_sumReLU_2.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_svsg3.cpp">
+    <ClCompile Include="exp_nm1ReLU_svsg3.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
-    <ClCompile Include="exp_m1ReLU_svsg4.cpp">
+    <ClCompile Include="exp_nm1ReLU_svsg4.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_iReLU_1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nmil1h_sumReLU_3.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_svsg1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_svsg2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_mnist1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_svsg3.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_iReLU_mnist1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_conv2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_conv1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_conv3.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_stabtest1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_svsg2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_iReLU_ReLU_mnist_cmp1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_mnist1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_mnist2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_conv4.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_stabtest2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicConvolutionI.cpp">
+      <Filter>Source Files\System</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_CWL2.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
   </ItemGroup>
@@ -97,7 +157,7 @@
     <ClInclude Include="BasicBackPropgI.h">
       <Filter>Header Files\Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="OutsErrorSetterI.h">
+    <ClInclude Include="ErrorCalculatorI.h">
       <Filter>Header Files\Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="BasicWghOptI.h">
@@ -121,9 +181,6 @@
     <ClInclude Include="NNB_Sigmoid.h">
       <Filter>Header Files\Basics_L1</Filter>
     </ClInclude>
-    <ClInclude Include="NNB_Sigmoid_spyable.h">
-      <Filter>Header Files\Basics_L2</Filter>
-    </ClInclude>
     <ClInclude Include="NNB_Connection_spyable.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
@@ -133,7 +190,7 @@
     <ClInclude Include="SimpleBitCounter.h">
       <Filter>Header Files\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="FwdBackPropGuider.h">
+    <ClInclude Include="LearnGuiderFwBPg.h">
       <Filter>Header Files\Learners</Filter>
     </ClInclude>
     <ClInclude Include="onnlab.h">
@@ -145,7 +202,7 @@
     <ClInclude Include="NNB_Input.h">
       <Filter>Header Files\Basics_L1</Filter>
     </ClInclude>
-    <ClInclude Include="NNB_m1ReLU.h">
+    <ClInclude Include="NNB_nm1ReLU.h">
       <Filter>Header Files\Mods</Filter>
     </ClInclude>
     <ClInclude Include="NNB_ConstInput.h">
@@ -154,7 +211,7 @@
     <ClInclude Include="NNB_StraightConnection.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
-    <ClInclude Include="NNB_ConnHyperGraphAggregator.h">
+    <ClInclude Include="NNB_ConnWghAverager.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
     <ClInclude Include="CustomBackPropgI.h">
@@ -172,17 +229,11 @@
     <ClInclude Include="DenseLayerStaticConnectomHolder.h">
       <Filter>Header Files\Basics_L2</Filter>
     </ClInclude>
-    <ClInclude Include="NNB_m1h_nanReLU.h">
+    <ClInclude Include="NNB_nm1h_nanReLU.h">
       <Filter>Header Files\Mods</Filter>
     </ClInclude>
-    <ClInclude Include="NNB_m1h_SelectorHead.h">
+    <ClInclude Include="NNB_nm1h_SelectorHead.h">
       <Filter>Header Files\Mods</Filter>
-    </ClInclude>
-    <ClInclude Include="NNB_m1h_SumHead.h">
-      <Filter>Header Files\Mods</Filter>
-    </ClInclude>
-    <ClInclude Include="Monotonic2FeildsProjectingAccessory.h">
-      <Filter>Header Files\Misc</Filter>
     </ClInclude>
     <ClInclude Include="SparceLayerStaticConnectomHolder2Mult.h">
       <Filter>Header Files\Basics_L2</Filter>
@@ -195,6 +246,84 @@
     </ClInclude>
     <ClInclude Include="NNB_LayersAggregator.h">
       <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_iReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ilReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_nm1iReLU.h">
+      <Filter>Header Files\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="CSVreader.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Monotonic2FieldsProjectingAccessory.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="Monotonic2FieldsHeuristicsI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Monotonic2FieldsHeuristicsEqExV1.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="Monotonic2FieldsHeuristicsEqExV2.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="LimitedNeuronI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConvolutionHead.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="OptimizerI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="OptimizerGD.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="OptimizerAdam.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicConvolutionI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Storage.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConvolutionEssence1d.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="HyperConnection.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="BatchNeuronBasicI.h">
+      <Filter>Header Files\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_Input_spyable.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_LinearSlim.h">
+      <Filter>Header Files\Basics_L1</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConvolutionEssence2d.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="LearnGuiderFwBPgThreadAble.h">
+      <Filter>Header Files\Learners</Filter>
+    </ClInclude>
+    <ClInclude Include="NetQualityCalcUtils.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="AtomicSpinlock.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="CarliniWagnerL2.h">
+      <Filter>Header Files\Reversers</Filter>
+    </ClInclude>
+    <ClInclude Include="IterableAggregation.h">
+      <Filter>Header Files\Misc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

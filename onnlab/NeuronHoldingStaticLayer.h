@@ -17,6 +17,12 @@ namespace nn
 		std::span<NeuronT> obj_view;
 		bool hasTrainable;
 
+		void AddNeuron(interfaces::NeuronBasicInterface *neuron) override {
+			throw std::exception("AddNeuron not allowed in NeuronHoldingStaticLayer!");
+		}
+
+		NeuronHoldingStaticLayer(const NeuronHoldingStaticLayer &) = delete;
+		NeuronHoldingStaticLayer &operator=(const NeuronHoldingStaticLayer &) = delete;
 	public:
 		using NeuronEmplacer = void(NeuronT *const mem_ptr, unsigned index);
 
@@ -56,10 +62,6 @@ namespace nn
 
 		bool HasTrainable() override {
 			return hasTrainable;
-		}
-
-		void AddNeuron(interfaces::NeuronBasicInterface *neuron) override {
-			throw std::exception("AddNeuron not allowed in NeuronHoldingStaticLayer!");
 		}
 	};
 }

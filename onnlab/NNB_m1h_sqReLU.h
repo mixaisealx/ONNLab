@@ -111,11 +111,15 @@ namespace nn
 			output_value = ActivationFunction(accumulator);
 		}
 
-		float OwnAccumulatorValue() override {
+		float RealAccumulatorValue(unsigned _ = 0) {
 			return accumulator;
 		}
 
-		float OwnLevel() override {
+		float SurrogateAccumulatorValue(unsigned _ = 0) override {
+			return accumulator;
+		}
+
+		float OwnLevel(unsigned _ = 0) override {
 			return output_value;
 		}
 
@@ -123,11 +127,11 @@ namespace nn
 			backprop_error_accumulator = 0;
 		}
 
-		void BackPropAccumulateError(float error) override {
+		void BackPropAccumulateError(float error, unsigned _ = 0) override {
 			backprop_error_accumulator += error;
 		}
 
-		float BackPropGetFinalError() override {
+		float BackPropGetFinalError(unsigned _ = 0) override {
 			return backprop_error_accumulator;
 		}
 	};

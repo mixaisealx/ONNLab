@@ -1,16 +1,17 @@
 #include "onnlab.h"
 
-#include <iostream>
-
 #include "NNB_Connection_spyable.h"
+#include "OptimizerGD.h"
 #include "NNB_ReLU.h"
 #include "NNB_Input.h"
 #include "NNB_Layer.h"
-#include "FwdBackPropGuider.h"
+#include "LearnGuiderFwBPg.h"
 
 #include <random>
 #include <vector>
 #include <tuple>
+
+#include <iostream>
 
 
 void exp_ReLU() {
@@ -32,13 +33,16 @@ void exp_ReLU() {
 	nn::NNB_ReLU out;
 
 	// Connections
-	nn::NNB_Connection connections[] = {
-		nn::NNB_Connection(&in1, &lr11),
-		nn::NNB_Connection(&in1, &lr12),
-		nn::NNB_Connection(&in2, &lr11),
-		nn::NNB_Connection(&in2, &lr12),
-		nn::NNB_Connection(&lr11, &out),
-		nn::NNB_Connection(&lr12, &out)
+	using OptimGD = nn::optimizers::GradientDescendent;
+	OptimGD optimizerGD;
+
+	nn::NNB_Connection<OptimGD> connections[] = {
+		nn::NNB_Connection<OptimGD>(&in1, &lr11, &optimizerGD),
+		nn::NNB_Connection<OptimGD>(&in1, &lr12, &optimizerGD),
+		nn::NNB_Connection<OptimGD>(&in2, &lr11, &optimizerGD),
+		nn::NNB_Connection<OptimGD>(&in2, &lr12, &optimizerGD),
+		nn::NNB_Connection<OptimGD>(&lr11, &out, &optimizerGD),
+		nn::NNB_Connection<OptimGD>(&lr12, &out, &optimizerGD)
 	};
 
 	// Perfect result storage
@@ -74,9 +78,8 @@ void exp_ReLU() {
 	connections[4].Weight(1.19150949);
 	connections[5].Weight(1.20489347);*/
 
-	nn::BasicOutsErrorSetter::ErrorCalcMSE mse_calculator;
-	nn::BasicOutsErrorSetter nerr_setter(&mse_calculator, perfect_out.size());
-	nn::FwdBackPropGuider learnguider({ &layer1, &layer2 }, &nerr_setter);
+	nn::errcalc::ErrorCalcMSE mse_calculator(perfect_out.size());
+	nn::LearnGuiderFwBPg learnguider({ &layer1, &layer2 }, &mse_calculator);
 
 	std::uniform_int_distribution<unsigned> testselector(0, 3);
 	for (size_t iterations = 0; iterations < 125; ++iterations) {

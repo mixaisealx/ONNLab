@@ -1,54 +1,35 @@
 #pragma once
 #include "NNBasicsInterfaces.h"
 #include "BasicWghOptI.h"
+#include "OptimizerI.h"
+#include "BatchNeuronBasicI.h"
 
 namespace nn
 {
+	template<interfaces::OptimizerInherit OptimizerT>
 	class NNB_Connection : public interfaces::ConnectionBasicInterface, public interfaces::BasicWeightOptimizableInterface {
 		interfaces::NeuronBasicInterface *from;
 		interfaces::NeuronBasicInterface *to;
+		OptimizerT *optimizer;
 		float weight;
-		float optimizer_learning_rate, optimizer_beta1, optimizer_beta2, optimizer_epsilon; // Optimizer settings
-		float optimizer_moment1, optimizer_moment2; // Optimizer state
-		unsigned optimizer_expDecayDegree; // Optimizer state
+		OptimizerT::State optimizer_context;
 
 		NNB_Connection(const NNB_Connection &) = delete;
 		NNB_Connection &operator=(const NNB_Connection &) = delete;
-
-		static inline float FastDegree(float base, unsigned degree) {
-			float result = 1.0f;
-			while (degree) {
-				if (degree & 1) {
-					result = result * base;
-				}
-				base = base * base;
-				degree >>= 1;
-			}
-			return result;
-		}
 	public:
-		// Using Gradient Decedent
-		NNB_Connection(interfaces::NeuronBasicInterface *from, interfaces::NeuronBasicInterface *to, float initial_weight = 0.0f, float optimizer_learning_rate = 0.1f): from(from), to(to), weight(initial_weight), optimizer_learning_rate(optimizer_learning_rate){
+		NNB_Connection(interfaces::NeuronBasicInterface *from, interfaces::NeuronBasicInterface *to, OptimizerT *optimizer, float initial_weight = 0.0f): from(from), to(to), optimizer(optimizer), weight(initial_weight) {
+			interfaces::BatchNeuronBasicI *bfrom = dynamic_cast<interfaces::BatchNeuronBasicI *>(from);
+			interfaces::BatchNeuronBasicI *bto = dynamic_cast<interfaces::BatchNeuronBasicI *>(to);
+			unsigned fromb = (bfrom ? bfrom->GetCurrentBatchSize() : 1);
+			unsigned tob = (bto ? bto->GetCurrentBatchSize() : 1);
+			if (fromb != std::numeric_limits<unsigned>::max() &&
+				tob != std::numeric_limits<unsigned>::max() && 
+				fromb != tob) {
+				throw std::exception("Different batch sizes is not allowed!");
+			}
 			NBI_AddOutputConnection(from, this);
 			NBI_AddInputConnection(to, this);
-			optimizer_beta1 = optimizer_beta2 = optimizer_epsilon = -1.0f;
-			WeightOptimReset();
-		}
-
-		// Using Adam
-		NNB_Connection(interfaces::NeuronBasicInterface *from, interfaces::NeuronBasicInterface *to, bool useAdam, float initial_weight = 0.0f, float optimizer_learning_rate = 0.001f, float beta1 = 0.9f, float beta2 = 0.999f, float epsilon = 1e-8f): 
-			from(from), 
-			to(to), 
-			weight(initial_weight), 
-			optimizer_learning_rate(optimizer_learning_rate),
-			optimizer_beta1(beta1),
-			optimizer_beta2(beta2),
-			optimizer_epsilon(epsilon)
-		{
-			if (!useAdam) throw std::logic_error("Remove \"useAdam\" flag to use GD instead.");
-			NBI_AddOutputConnection(from, this);
-			NBI_AddInputConnection(to, this);
-			WeightOptimReset();
+			optimizer->Reset(&optimizer_context);
 		}
 
 		~NNB_Connection() override {
@@ -76,26 +57,11 @@ namespace nn
 		}
 
 		void WeightOptimReset() override {
-			optimizer_moment1 = optimizer_moment2 = 0.0f;
-			optimizer_expDecayDegree = 0;
+			optimizer->Reset(&optimizer_context);
 		}
 
-		void WeightOptimDoUpdate(float delta) override {
-			if (optimizer_epsilon > 0) { // Use Adam
-				float gradient = delta * from->OwnLevel();
-
-				++optimizer_expDecayDegree;
-				optimizer_moment1 = optimizer_moment1 * optimizer_beta1 + (1.0f - optimizer_beta1) * gradient;
-				optimizer_moment2 = optimizer_moment2 * optimizer_beta2 + (1.0f - optimizer_beta2) * gradient * gradient;
-
-				float optimizer_moment1_norm = optimizer_moment1 / (1.0f - FastDegree(optimizer_beta1, optimizer_expDecayDegree));
-				float optimizer_moment2_norm = optimizer_moment2 / (1.0f - FastDegree(optimizer_beta2, optimizer_expDecayDegree));
-				float delta_mod = optimizer_moment1_norm / (std::sqrt(optimizer_moment2_norm) + optimizer_epsilon);
-
-				weight -= optimizer_learning_rate * delta_mod;
-			} else { // Use GD
-				weight -= optimizer_learning_rate * delta * from->OwnLevel();
-			}
+		void WeightOptimDoUpdate(float gradient) override {
+			weight -= optimizer->CalcDelta(gradient, &optimizer_context);
 		}
 	};
 }

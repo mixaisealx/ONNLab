@@ -3,7 +3,8 @@
 
 namespace nn
 {
-	class NNB_Connection_spyable : public NNB_Connection {
+	template<interfaces::OptimizerInherit OptimizerT>
+	class NNB_Connection_spyable : public NNB_Connection<OptimizerT> {
 		NNB_Connection_spyable(const NNB_Connection_spyable &) = delete;
 		NNB_Connection_spyable &operator=(const NNB_Connection_spyable &) = delete;
 
@@ -12,11 +13,11 @@ namespace nn
 			NNB_Connection(from, to, optimizer_learning_rate, weight) {
 		}
 
-		float last_delta = 0;
+		float last_gradient = 0;
 
-		void WeightOptimDoUpdate(float delta) override {
-			NNB_Connection::WeightOptimDoUpdate(delta);
-			last_delta = delta;
+		void WeightOptimDoUpdate(float gradient) override {
+			NNB_Connection::WeightOptimDoUpdate(gradient);
+			last_gradient = gradient;
 		}
 	};
 }

@@ -4,18 +4,28 @@
 
 namespace nn
 {
-	class NNB_StraightConnection : public interfaces::ConnectionBasicInterface, public interfaces::BasicWeightOptimizableInterface {
+	template<float weight>
+	class NNB_StraightConnectionW : public interfaces::ConnectionBasicInterface, public interfaces::BasicWeightOptimizableInterface {
 		interfaces::NeuronBasicInterface *from;
 		interfaces::NeuronBasicInterface *to;
 
-		NNB_StraightConnection(const NNB_StraightConnection &) = delete;
-		NNB_StraightConnection &operator=(const NNB_StraightConnection &) = delete;
+		NNB_StraightConnectionW(const NNB_StraightConnectionW &) = delete;
+		NNB_StraightConnectionW &operator=(const NNB_StraightConnectionW &) = delete;
 	public:
-		NNB_StraightConnection(interfaces::NeuronBasicInterface *from, interfaces::NeuronBasicInterface *to): from(from), to(to) {
+		NNB_StraightConnectionW(interfaces::NeuronBasicInterface *from, interfaces::NeuronBasicInterface *to): from(from), to(to) {
+			interfaces::BatchNeuronBasicI *bfrom = dynamic_cast<interfaces::BatchNeuronBasicI *>(from);
+			interfaces::BatchNeuronBasicI *bto = dynamic_cast<interfaces::BatchNeuronBasicI *>(to);
+			unsigned fromb = (bfrom ? bfrom->GetCurrentBatchSize() : 1);
+			unsigned tob = (bto ? bto->GetCurrentBatchSize() : 1);
+			if (fromb != std::numeric_limits<unsigned>::max() &&
+				tob != std::numeric_limits<unsigned>::max() &&
+				fromb != tob) {
+				throw std::exception("Different batch sizes is not allowed!");
+			}
 			NBI_AddOutputConnection(from, this);
 			NBI_AddInputConnection(to, this);
 		}
-		~NNB_StraightConnection() override {
+		~NNB_StraightConnectionW() override {
 			if (from && to) {
 				NBI_RemoveOutputConnection(from, this);
 				NBI_RemoveInputConnection(to, this);
@@ -32,7 +42,7 @@ namespace nn
 		}
 
 		float Weight() override {
-			return 1.0f;
+			return weight;
 		}
 
 		void Weight(float) override {
@@ -43,8 +53,10 @@ namespace nn
 		void WeightOptimReset() override {
 			// Compatibility plug
 		}
-		void WeightOptimDoUpdate(float delta) override {
+		void WeightOptimDoUpdate(float gradient) override {
 			// Compatibility plug
 		}
 	};
+
+	using NNB_StraightConnection = NNB_StraightConnectionW<1.0f>;
 }

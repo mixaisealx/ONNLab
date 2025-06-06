@@ -1,9 +1,11 @@
 #pragma once
 #include "NNBasicsInterfaces.h"
+#include "BatchNeuronBasicI.h"
 
 namespace nn
 {
-	class NNB_ConstInput final : public interfaces::NeuronBasicInterface {
+	template <float value>
+	class NNB_ConstInputV final : public interfaces::NeuronBasicInterface, public interfaces::BatchNeuronBasicI {
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 
 		void AddInputConnection(interfaces::ConnectionBasicInterface *) override {
@@ -34,12 +36,12 @@ namespace nn
 			outputs.erase(std::remove(outputs.begin(), outputs.end(), output), outputs.end());
 		}
 
-		NNB_ConstInput(const NNB_ConstInput &) = delete;
-		NNB_ConstInput &operator=(const NNB_ConstInput &) = delete;
+		NNB_ConstInputV(const NNB_ConstInputV &) = delete;
+		NNB_ConstInputV &operator=(const NNB_ConstInputV &) = delete;
 	public:
-		NNB_ConstInput() = default;
+		NNB_ConstInputV() = default;
 
-		~NNB_ConstInput() override {
+		~NNB_ConstInputV() override {
 			for (auto out : outputs) {
 				out->~ConnectionBasicInterface();
 			}
@@ -51,12 +53,24 @@ namespace nn
 
 		void UpdateOwnLevel() override {}
 
-		float OwnLevel() override {
-			return 1.0f;
+		float OwnLevel(unsigned _ = 0) override {
+			return value;
 		}
 
 		bool IsTrainable() override {
 			return false;
 		}
+
+		unsigned GetMaxBatchSize() override {
+			return std::numeric_limits<unsigned>::max();
+		}
+
+		unsigned GetCurrentBatchSize() override {
+			return std::numeric_limits<unsigned>::max();
+		}
+
+		void SetCurrentBatchSize(unsigned batch_size) override {}
 	};
+
+	using NNB_ConstInput = NNB_ConstInputV<1.0f>;
 }

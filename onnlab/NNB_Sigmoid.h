@@ -1,14 +1,21 @@
 #pragma once
 #include "NNBasicsInterfaces.h"
 #include "BasicBackPropgI.h"
+#include "LimitedNeuronI.h"
+#include "BatchNeuronBasicI.h"
 
-#include "math.h"
+#include <cmath>
+#include <algorithm>
+#include <array>
 
 namespace nn
 {
-	class NNB_Sigmoid : public interfaces::NeuronBasicInterface, public interfaces::BasicBackPropogableInterface {
-		float accumulator;
-		float backprop_error_accumulator;
+	template<unsigned BATCH_SIZE, bool KahanErrorSummation = false> requires (BATCH_SIZE > 0)
+	class NNB_SigmoidB : public interfaces::NeuronBasicInterface, public interfaces::BasicBackPropogableInterface, public interfaces::BatchNeuronBasicI, public interfaces::LimitedNeuronI {
+		std::array<float, BATCH_SIZE> accumulator;
+		std::array<float, BATCH_SIZE> backprop_error_accumulator;
+		[[msvc::no_unique_address]] [[no_unique_address]] std::conditional<KahanErrorSummation, std::array<float, BATCH_SIZE>, std::monostate>::type backprop_error_accumulator_kahan_compensation;
+		unsigned current_batch_size;
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 		std::vector<interfaces::ConnectionBasicInterface *> inputs;
 
@@ -30,15 +37,23 @@ namespace nn
 			outputs.erase(std::remove(outputs.begin(), outputs.end(), output), outputs.end());
 		}
 
-		NNB_Sigmoid(const NNB_Sigmoid &) = delete;
-		NNB_Sigmoid &operator=(const NNB_Sigmoid &) = delete;
-	public:
-		NNB_Sigmoid() {
-			accumulator = 0;
-			backprop_error_accumulator = 0;
+		inline void InnerActivationFunction(float &x) const {
+			x = 1.0f / (1.0f + std::powf(MC_E, -x));
 		}
 
-		~NNB_Sigmoid() override {
+		NNB_SigmoidB(const NNB_SigmoidB &) = delete;
+		NNB_SigmoidB &operator=(const NNB_SigmoidB &) = delete;
+	public:
+		NNB_SigmoidB(unsigned batch_size = BATCH_SIZE):current_batch_size(batch_size) {
+			if (batch_size > BATCH_SIZE || batch_size == 0) throw std::exception("batch_size bigger than max batch size or is zero!");
+			std::fill_n(accumulator.begin(), current_batch_size, 0.0f);
+			std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
+			if constexpr (KahanErrorSummation) {
+				std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), current_batch_size, 0.0f);
+			}
+		}
+
+		~NNB_SigmoidB() override {
 			for (auto inp : inputs) {
 				inp->~ConnectionBasicInterface();
 			}
@@ -59,7 +74,7 @@ namespace nn
 		}
 
 		float ActivationFunction(float x) const override {
-			return 1.0f / (1.0f + powf(MC_E, -x));
+			return 1.0f / (1.0f + std::powf(MC_E, -x));
 		}
 
 		float ActivationFunctionDerivative(float x) const override {
@@ -67,27 +82,85 @@ namespace nn
 		}
 
 		void UpdateOwnLevel() override {
-			accumulator = 0; // 1 * bias_weight
+			std::fill_n(accumulator.begin(), current_batch_size, 0.0f);
+
+			interfaces::NBI *nrn;
 			for (const auto inp : inputs) {
-				accumulator += inp->From()->OwnLevel() * inp->Weight();
+				nrn = inp->From();
+				for (unsigned channel = 0; channel != current_batch_size; ++channel) {
+					accumulator[channel] += nrn->OwnLevel(channel) * inp->Weight();
+				}
 			}
-			accumulator = ActivationFunction(accumulator);
+			for (unsigned channel = 0; channel != current_batch_size; ++channel) {
+				InnerActivationFunction(accumulator[channel]);
+			}
 		}
 
-		float OwnLevel() override {
-			return accumulator;
+		float OwnLevel(unsigned channel = 0) override {
+			return accumulator[channel];
 		}
 
 		void BackPropResetError() override {
-			backprop_error_accumulator = 0;
+			std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
+			if constexpr (KahanErrorSummation) {
+				std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), current_batch_size, 0.0f);
+			}
 		}
 
-		void BackPropAccumulateError(float error) override {
-			backprop_error_accumulator += error;
+		void BackPropAccumulateError(float error, unsigned channel = 0) override {
+			if constexpr (KahanErrorSummation) {
+				float &sum = backprop_error_accumulator[channel];
+				float &compensation = backprop_error_accumulator_kahan_compensation[channel];
+				float y = error - compensation;
+				float t = sum + y;
+				compensation = (t - sum) - y;
+				sum = t;
+			} else {
+				backprop_error_accumulator[channel] += error;
+			}
 		}
 
-		float BackPropGetFinalError() override {
-			return backprop_error_accumulator;
+		float BackPropGetFinalError(unsigned channel = 0) override {
+			return backprop_error_accumulator[channel];
+		}
+
+		unsigned GetMaxBatchSize() override {
+			return BATCH_SIZE;
+		}
+
+		unsigned GetCurrentBatchSize() override {
+			return current_batch_size;
+		}
+
+		void SetCurrentBatchSize(unsigned batch_size) override {
+			if (batch_size && batch_size <= BATCH_SIZE) {
+				unsigned tmp;
+				interfaces::BatchNeuronBasicI *nrn;
+				for (auto elem : inputs) {
+					nrn = dynamic_cast<interfaces::BatchNeuronBasicI *>(elem->From());
+					tmp = (nrn ? nrn->GetCurrentBatchSize() : 1);
+					if (tmp != batch_size && tmp != std::numeric_limits<unsigned>::max()) {
+						throw std::exception("Different batch sizes (batch_size vs \"input layer\") is not allowed!");
+					}
+				}
+				current_batch_size = batch_size;
+				std::fill_n(accumulator.begin(), current_batch_size, 0.0f);
+				std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
+				if constexpr (KahanErrorSummation) {
+					std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), current_batch_size, 0.0f);
+				}
+			} else
+				throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+		}
+
+		float UpperLimitValue() const override {
+			return 1.0f;
+		}
+
+		float LowerLimitValue() const override {
+			return 0.0f;
 		}
 	};
+
+	using NNB_Sigmoid = NNB_SigmoidB<1, false>;
 }

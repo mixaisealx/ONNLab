@@ -1,11 +1,18 @@
 #pragma once
 #include "NNBasicsInterfaces.h"
 #include "InputNeuronI.h"
+#include "BatchNeuronBasicI.h"
+
+#include <array>
+#include <algorithm>
+#include <functional>
 
 namespace nn
 {
-	class NNB_Input final : public interfaces::NeuronBasicInterface, public interfaces::InputNeuronI {
-		float *value_storage;
+	template<unsigned BATCH_SIZE> requires (BATCH_SIZE > 0)
+	class NNB_InputB : public interfaces::NeuronBasicInterface, public interfaces::InputNeuronI, public interfaces::BatchNeuronBasicI {
+		std::array<float *, BATCH_SIZE> values_source;
+		unsigned current_batch_size;
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 
 		void AddInputConnection(interfaces::ConnectionBasicInterface *) override {
@@ -36,43 +43,79 @@ namespace nn
 			outputs.erase(std::remove(outputs.begin(), outputs.end(), output), outputs.end());
 		}
 
-		NNB_Input(const NNB_Input &) = delete;
-		NNB_Input &operator=(const NNB_Input &) = delete;
-	public:
-		NNB_Input(float *value_storage):value_storage(value_storage) {
-		}
-
-		~NNB_Input() override {
-			for (auto out : outputs) {
-				out->~ConnectionBasicInterface();
+		NNB_InputB(const NNB_InputB &) = delete;
+		NNB_InputB &operator=(const NNB_InputB &) = delete;
+		public:
+			NNB_InputB(float values_storage_array[], unsigned count = 1) {
+				if (count > BATCH_SIZE || count == 0) throw std::exception("Batch initializer bigger than batch size or zero!");
+				current_batch_size = count;
+				for (unsigned i = 0; i != count; ++i) {
+					values_source[i] = values_storage_array + i;
+				}
 			}
-		}
 
-		const std::vector<interfaces::ConnectionBasicInterface *> &OutputConnections() override {
-			return outputs;
-		}
+			NNB_InputB(std::initializer_list<float *> values_sources) {
+				if (values_sources.size() > BATCH_SIZE || values_sources.size() == 0) throw std::exception("Batch initializer bigger than batch size or zero!");
+				current_batch_size = values_sources.size();
+				std::copy(values_sources.begin(), values_sources.end(), values_source.begin());
+			}
 
-		float* ValueStoragePtr() {
-			return value_storage;
-		}
 
-		void ValueStoragePtr(float *value_storage) {
-			this->value_storage = value_storage;
-		}
+			NNB_InputB(std::function<void(float **storage, unsigned capacity, unsigned &used_capacity)> initializer) {
+				unsigned count;
+				initializer(values_source.data(), BATCH_SIZE, count);
+				if (count > BATCH_SIZE || count == 0) throw std::exception("Batch initializer bigger than batch size or zero!");
+				current_batch_size = count;
+			}
+			
 
-		void UpdateOwnLevel() override {
-		}
+			~NNB_InputB() override {
+				for (auto out : outputs) {
+					out->~ConnectionBasicInterface();
+				}
+			}
 
-		void SetOwnLevel(float value) override {
-			*value_storage = value;
-		}
+			const std::vector<interfaces::ConnectionBasicInterface *> &OutputConnections() override {
+				return outputs;
+			}
 
-		float OwnLevel() override {
-			return *value_storage;
-		}
+			float *ValueStoragePtr(unsigned channel = 0) {
+				return values_source[channel];
+			}
 
-		bool IsTrainable() override {
-			return false;
-		}
+			void ValueStoragePtr(float *value_storage, unsigned channel = 0) {
+				this->values_source[channel] = value_storage;
+			}
+
+			void UpdateOwnLevel() override {}
+
+			void SetOwnLevel(float value, unsigned channel = 0) override {
+				*values_source[channel] = value;
+			}
+
+			float OwnLevel(unsigned channel = 0) override {
+				return *values_source[channel];
+			}
+
+			bool IsTrainable() override {
+				return false;
+			}
+
+			unsigned GetMaxBatchSize() override {
+				return BATCH_SIZE;
+			}
+
+			unsigned GetCurrentBatchSize() override {
+				return current_batch_size;
+			}
+
+			void SetCurrentBatchSize(unsigned batch_size) override {
+				if (batch_size && batch_size <= BATCH_SIZE)
+					current_batch_size = batch_size;
+				else
+					throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+			}
 	};
+
+	using NNB_Input = NNB_InputB<1>;
 }

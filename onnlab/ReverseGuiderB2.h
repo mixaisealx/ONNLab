@@ -39,7 +39,7 @@ namespace nn::reverse
 			}
 		}
 
-		float BackPropogateError() {
+		float BackPropagateError() {
 			auto oiter = target_output->begin();
 			float mse = 0;
 			for (auto opn = layers.back()->Neurons().begin(), eopn = layers.back()->Neurons().end(); opn != eopn; ++opn, ++oiter) {

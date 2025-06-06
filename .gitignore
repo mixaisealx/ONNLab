@@ -12,6 +12,7 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+mnist-in-csv/*.csv
 
 # Build results
 [Dd]ebug/

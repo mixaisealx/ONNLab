@@ -43,7 +43,7 @@ namespace nn::reverse
 		}
 
 		static inline bool SLE_TriangolizePerm(std::vector<std::vector<float>> &x_matrix_augm, const std::vector<uint16_t> &column_permutation, uint16_t augm_col_idx) {
-			uint16_t rows_count = x_matrix_augm.size();
+			uint16_t rows_count = (uint16_t)x_matrix_augm.size();
 			uint16_t cell_limit = std::min(rows_count, augm_col_idx);
 			float max_value, temp;
 			uint16_t max_idx;
@@ -104,9 +104,9 @@ namespace nn::reverse
 
 		static inline void LayerSolver_Variate(std::vector<std::vector<float>> &augmatrix, const std::vector<uint16_t> &permutation, uint16_t augmatrix_columns_count, std::function<void(const std::vector<float> &x_vector_result)> x_result_callback, uint8_t deviation_depth_exponential = 1, float initial_deviate_coefficient = 0.6f, float exponential_fade_coefficient = 0.5f) {
 			if (!SLE_TriangolizePerm(augmatrix, permutation, augmatrix_columns_count)) {
-				throw std::runtime_error("An unexpected singular matrix.");
+				throw std::exception("An unexpected singular matrix.");
 			}
-			uint16_t substand_cell = augmatrix.size() - 1;
+			uint16_t substand_cell = (uint16_t)augmatrix.size() - 1;
 
 			std::vector<float> x_vector_result(augmatrix_columns_count);
 			SLE_CalcEqualX(augmatrix, augmatrix_columns_count, substand_cell, x_vector_result);
@@ -115,7 +115,7 @@ namespace nn::reverse
 			SLE_SubstandX(augmatrix, augmatrix_columns_count, substand_cell, x_vector_result);
 			x_result_callback(x_vector_result);
 
-			uint8_t changing_variables_count = augmatrix_columns_count - augmatrix.size();
+			uint8_t changing_variables_count = (uint8_t)(augmatrix_columns_count - augmatrix.size());
 			float variables_ref_value = x_vector_result.back(); // "mathematical expectation"
 
 			std::vector<float> deviation_cache(deviation_depth_exponential);
@@ -125,7 +125,7 @@ namespace nn::reverse
 				deviator *= exponential_fade_coefficient; // Exponential fade
 			}
 
-			uint16_t x_offset = augmatrix.size();
+			uint16_t x_offset = (uint16_t)augmatrix.size();
 			std::vector<int8_t> bitmap(changing_variables_count * deviation_depth_exponential + 1, -1);
 			for (; bitmap.back() == -1; ) { // Exponent!!!
 				for (uint8_t var = 0; var != changing_variables_count; ++var) {
@@ -162,13 +162,13 @@ namespace nn::reverse
 			auto oiter = outputs.begin();
 			for (auto opn = layers.back()->Neurons().begin(), eopn = layers.back()->Neurons().end(); opn != eopn; ++opn, ++oiter) {
 				storage[*opn].bp_out_value = *oiter;
-				storage[*opn].unapply_nonlinear = std::bind(UnReLU, std::placeholders::_1, 0.1f);
+				storage[*opn].unapply_nonmonotonic = std::bind(UnReLU, std::placeholders::_1, 0.1f);
 			}
 		}
 
 		void ApplyLayerSolver(nn::interfaces::BasicLayerInterface *lr_input, nn::interfaces::BasicLayerInterface *lr_output) {
-			uint16_t augmatrix_rows_count = lr_output->Neurons().size();
-			uint16_t augmatrix_columns_count = lr_input->Neurons().size();
+			uint16_t augmatrix_rows_count = (uint16_t)lr_output->Neurons().size();
+			uint16_t augmatrix_columns_count = (uint16_t)lr_input->Neurons().size();
 
 			std::vector<std::vector<float>> augmatrix(augmatrix_rows_count, std::vector<float>(augmatrix_columns_count + 1));
 			{
@@ -181,7 +181,7 @@ namespace nn::reverse
 						++column;
 					}
 					auto &nstore = storage[nrout];
-					nstore.bp_out_summ = nstore.unapply_nonlinear(nstore.bp_out_value);
+					nstore.bp_out_summ = nstore.unapply_nonmonotonic(nstore.bp_out_value);
 					rowref[column] = nstore.bp_out_summ;
 					++row;
 				}
@@ -190,7 +190,7 @@ namespace nn::reverse
 			if (augmatrix_rows_count == augmatrix_columns_count) { // Can use a linear solver! There are exactly as many equations as we need.
 				std::vector<float> calculated_inputs(augmatrix_columns_count);
 				if (!SLE_SolveSquare(augmatrix, augmatrix_columns_count, calculated_inputs)) {
-					throw std::runtime_error("An unexpected singular matrix.");
+					throw std::exception("An unexpected singular matrix.");
 				}
 				auto nriter = lr_input->Neurons().begin();
 				for (auto value : calculated_inputs) {
@@ -208,7 +208,7 @@ namespace nn::reverse
 				std::vector<float> calculated_inputs(augmatrix_columns_count);
 				//There we must run calc on current combo (before any permutations)
 				if (!SLE_SolveSquare(augmatrix_window, augmatrix_columns_count, calculated_inputs)) {
-					throw std::runtime_error("An unexpected singular matrix.");
+					throw std::exception("An unexpected singular matrix.");
 				}
 				auto input_neurons_iter = lr_input->Neurons().begin();
 				for (auto value : calculated_inputs) {
@@ -240,7 +240,7 @@ namespace nn::reverse
 						augmatrix_window[row] = augmatrix[permutation[row]]; // Restoring the "corrupted" rows of matrix AND filling up with new data (by permutation)
 					}
 					if (!SLE_SolveSquare(augmatrix_window, augmatrix_columns_count, calculated_inputs)) {
-						throw std::runtime_error("An unexpected singular matrix.");
+						throw std::exception("An unexpected singular matrix.");
 					}
 					input_neurons_iter = lr_input->Neurons().begin();
 					for (auto value : calculated_inputs) {
@@ -329,7 +329,7 @@ namespace nn::reverse
 			float bp_out_summ;
 			uint8_t bp_out_hypo_type; // 0 - no type, 1 - EXACT_VALUES (got from SLE solver, indexes are solution groups), 2 - DEVIATED_EXPECT (got from SLE deviator)
 			std::vector<float> bp_out_hypo;
-			std::function<float(float)> unapply_nonlinear;
+			std::function<float(float)> unapply_nonmonotonic;
 		};
 
 		std::unordered_map<const void *, MetaData> storage;
