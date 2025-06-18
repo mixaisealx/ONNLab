@@ -146,7 +146,25 @@
     <ClCompile Include="BasicConvolutionI.cpp">
       <Filter>Source Files\System</Filter>
     </ClCompile>
-    <ClCompile Include="exp_ReLU_CWL2.cpp">
+    <ClCompile Include="exp_ReLU_CWL2_svsg.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_CWL2_mnist1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_iReLU_ReLU_mnist_cmp2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_ReLU_mnist_cmp1.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_ReLU_BIM_svsg.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_ReLU_mnist_cmp2.cpp">
+      <Filter>Source Files\Experiments</Filter>
+    </ClCompile>
+    <ClCompile Include="exp_nm1ilReLU_ReLU_mnist_CWL2_BIM_cmp1.cpp">
       <Filter>Source Files\Experiments</Filter>
     </ClCompile>
   </ItemGroup>
@@ -169,7 +187,7 @@
     <ClInclude Include="ReverseGuiderB2.h">
       <Filter>Header Files\Reversers</Filter>
     </ClInclude>
-    <ClInclude Include="ReverseGuiderB1.h">
+    <ClInclude Include="ReverseB1.h">
       <Filter>Header Files\Reversers</Filter>
     </ClInclude>
     <ClInclude Include="NNB_Connection.h">
@@ -186,9 +204,6 @@
     </ClInclude>
     <ClInclude Include="NNB_Layer.h">
       <Filter>Header Files\Basics_L2</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleBitCounter.h">
-      <Filter>Header Files\Misc</Filter>
     </ClInclude>
     <ClInclude Include="LearnGuiderFwBPg.h">
       <Filter>Header Files\Learners</Filter>
@@ -324,6 +339,24 @@
     </ClInclude>
     <ClInclude Include="IterableAggregation.h">
       <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="InertAccumulator.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConvolutionMinMaxPoolingHead.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConvolutionEssence3d.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ConvolutionEssence4d.h">
+      <Filter>Header Files\Basics_L2</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicIterativeMethod.h">
+      <Filter>Header Files\Reversers</Filter>
+    </ClInclude>
+    <ClInclude Include="NNB_ReLU0.h">
+      <Filter>Header Files\Basics_L1</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

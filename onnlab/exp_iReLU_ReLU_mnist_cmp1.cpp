@@ -231,7 +231,7 @@ static inline std::tuple<float, float> MNIST_Train_setup(std::vector<MNIST_entry
 			loss = 0.0f;
 			// Learning
 			learnguider_multhr.WorkerDoForward(worker_id, &caches[0]);
-			loss += learnguider_multhr.FillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
+			loss += learnguider_multhr.WorkerFillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
 			learnguider_multhr.WorkerDoBackward(worker_id, &caches[0]);
 
 			// Loss & local accuracy

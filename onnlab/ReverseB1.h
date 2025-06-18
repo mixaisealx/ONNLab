@@ -9,7 +9,8 @@
 
 namespace nn::reverse
 {
-	class ReverseGuiderB1 {
+	class ReverseB1 {
+	public:
 		static inline bool SLE_Triangolize(std::vector<std::vector<float>> &x_matrix_augm, uint16_t rows_count, uint16_t augm_col_idx) {
 			uint16_t cell_limit = std::min(rows_count, augm_col_idx);
 			++augm_col_idx;
@@ -150,19 +151,19 @@ namespace nn::reverse
 			}
 		}
 
-	public:
-		ReverseGuiderB1(std::initializer_list<nn::interfaces::BasicLayerInterface *> layers):layers(layers) {
+		ReverseB1() {
 		}
 
-		static float UnReLU(float y, float alpha) {
-			return (y < 0 ? y / alpha : y);
+		void SetLayerReverseActivationFunction(nn::interfaces::BasicLayerInterface *layer, std::function<float(float)> unapply_nonlinear) {
+			for (auto nrn : layer->Neurons()) {
+				storage[nrn].unapply_nonlinear = unapply_nonlinear;
+			}
 		}
 
-		void FillTargetExactOutputs(const std::vector<float> &outputs) {
+		void FillTargetExactOutputs(const std::vector<float> &outputs, nn::interfaces::BasicLayerInterface *lr_output) {
 			auto oiter = outputs.begin();
-			for (auto opn = layers.back()->Neurons().begin(), eopn = layers.back()->Neurons().end(); opn != eopn; ++opn, ++oiter) {
+			for (auto opn = lr_output->Neurons().begin(), eopn = lr_output->Neurons().end(); opn != eopn; ++opn, ++oiter) {
 				storage[*opn].bp_out_value = *oiter;
-				storage[*opn].unapply_nonmonotonic = std::bind(UnReLU, std::placeholders::_1, 0.1f);
 			}
 		}
 
@@ -181,7 +182,7 @@ namespace nn::reverse
 						++column;
 					}
 					auto &nstore = storage[nrout];
-					nstore.bp_out_summ = nstore.unapply_nonmonotonic(nstore.bp_out_value);
+					nstore.bp_out_summ = nstore.unapply_nonlinear(nstore.bp_out_value);
 					rowref[column] = nstore.bp_out_summ;
 					++row;
 				}
@@ -319,21 +320,14 @@ namespace nn::reverse
 			};
 		}
 
-		void ReverseOut() {
-			
-		}
-
-	private:
 		struct MetaData {
 			float bp_out_value;
 			float bp_out_summ;
 			uint8_t bp_out_hypo_type; // 0 - no type, 1 - EXACT_VALUES (got from SLE solver, indexes are solution groups), 2 - DEVIATED_EXPECT (got from SLE deviator)
 			std::vector<float> bp_out_hypo;
-			std::function<float(float)> unapply_nonmonotonic;
+			std::function<float(float)> unapply_nonlinear;
 		};
 
 		std::unordered_map<const void *, MetaData> storage;
-
-		std::vector<interfaces::BasicLayerInterface *> layers;
 	};
 }

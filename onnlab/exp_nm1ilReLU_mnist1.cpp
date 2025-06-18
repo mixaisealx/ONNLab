@@ -281,11 +281,11 @@ void exp_nm1ilReLU_mnist1() {
 			// Learning
 			if (learn_nonmonotonic) {
 				learnguider_mtr_nm.WorkerDoForward(worker_id, &caches[0]);
-				loss += learnguider_mtr_nm.FillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
+				loss += learnguider_mtr_nm.WorkerFillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
 				learnguider_mtr_nm.WorkerDoBackward(worker_id, &caches[0]);
 			} else {
 				learnguider_mtr_equiv.WorkerDoForward(worker_id, &caches[0]);
-				loss += learnguider_mtr_equiv.FillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
+				loss += learnguider_mtr_equiv.WorkerFillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
 				learnguider_mtr_equiv.WorkerDoBackward(worker_id, &caches[0]);
 			}
 

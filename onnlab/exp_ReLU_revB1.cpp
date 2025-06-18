@@ -6,12 +6,16 @@
 #include "NNB_Input.h"
 #include "NNB_Layer.h"
 
-#include "ReverseGuiderB1.h"
+#include "ReverseB1.h"
 
 #include <vector>
 
 #include <iostream>
 
+
+static float UnReLU(float y, float alpha) {
+	return (y < 0 ? y / alpha : y);
+}
 
 void exp_ReLU_revB1() {
 	std::cout << "exp_ReLU_revB1" << std::endl;
@@ -43,9 +47,10 @@ void exp_ReLU_revB1() {
 	connections[4].Weight(1.19150949f);
 	connections[5].Weight(1.20489347f);
 
-	nn::reverse::ReverseGuiderB1 revg({ &layer1, &layer2 });
-	revg.FillTargetExactOutputs({ 1 });
-	revg.ApplyLayerSolver(&layer1, &layer2);
+	nn::reverse::ReverseB1 revb;
+	revb.SetLayerReverseActivationFunction(&layer2, std::bind(UnReLU, std::placeholders::_1, 0.1f));
+	revb.FillTargetExactOutputs({ 1 }, &layer2);
+	revb.ApplyLayerSolver(&layer1, &layer2);
 
 	return;
 }

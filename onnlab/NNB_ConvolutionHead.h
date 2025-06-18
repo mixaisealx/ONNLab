@@ -397,7 +397,7 @@ namespace nn
 			if (biases.size()) {
 				for (unsigned kernelid = 0; kernelid != kernels_cells.size(); ++kernelid) {
 					if (job_id == worker_id) {
-						biases[kernelid].weight -= optimizer->CalcDelta(weight_bias_optim, &biases[kernelid].optimizer_context);
+						biases[kernelid].weight -= optimizer->CalcDelta(backpropbias_accumulator[kernelid], &biases[kernelid].optimizer_context);
 					}
 
 					if (++job_id == threads_count) {

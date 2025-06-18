@@ -136,7 +136,7 @@ void exp_ReLU_conv4() {
 
 			// Learning
 			learnguider_mthr.WorkerDoForward(worker_id, &caches[0]);
-			learnguider_mthr.FillupOutsError(worker_id, &softmax_calculator, perfect_out_store);
+			learnguider_mthr.WorkerFillupOutsError(worker_id, &softmax_calculator, perfect_out_store);
 			learnguider_mthr.WorkerDoBackward(worker_id, &caches[0]);
 
 			data_is_ready_for_workers.clear(std::memory_order_release);

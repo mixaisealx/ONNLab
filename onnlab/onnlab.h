@@ -4,9 +4,9 @@ void exp_stabtest1();
 void exp_stabtest2();
 void exp_ReLU();
 void exp_ReLU_revB1();
+void exp_ReLU_BIM_svsg();
 void exp_ReLU_svsg1();
 void exp_ReLU_svsg2();
-void exp_ReLU_CWL2();
 void exp_ReLU_conv1();
 void exp_ReLU_conv2();
 void exp_ReLU_conv3();
@@ -35,6 +35,10 @@ void exp_nm1ReLU_svsg4();
 void exp_iReLU_1();
 void exp_iReLU_mnist1();
 void exp_iReLU_ReLU_mnist_cmp1();
+void exp_iReLU_ReLU_mnist_cmp2();
+void exp_nm1ilReLU_ReLU_mnist_cmp1();
+void exp_nm1ilReLU_ReLU_mnist_cmp2();
+void exp_nm1ilReLU_ReLU_mnist_CWL2_BIM_cmp1();
 
 void exp_nm1ilReLU_svsg1();
 void exp_nm1ilReLU_svsg2();
@@ -42,3 +46,6 @@ void exp_nm1ilReLU_svsg3();
 
 void exp_nm1ilReLU_mnist1();
 void exp_nm1ilReLU_mnist2();
+
+void exp_ReLU_CWL2_svsg();
+void exp_ReLU_CWL2_mnist1();

@@ -52,5 +52,7 @@ namespace nn::interfaces
 		virtual unsigned GetKernelsCount() = 0;
 		virtual nn::interfaces::NBI *GetInputforLocation(unsigned place_id, unsigned weight_id) = 0;
 		virtual nn::interfaces::NBI *GetOutputforLocation(unsigned place_id, unsigned kernel_id) = 0;
+		virtual std::vector<unsigned> CalcInputShape() = 0;
+		virtual std::vector<unsigned> CalcOutputShape() = 0;
 	};
 }

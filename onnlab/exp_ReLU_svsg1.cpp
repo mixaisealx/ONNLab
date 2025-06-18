@@ -136,7 +136,7 @@ void exp_ReLU_svsg1() {
 		// Inference
 		learnguider.DoForward();
 
-		float max = std::numeric_limits<float>::min(), max2 = max;
+		float max = -std::numeric_limits<float>::infinity(), max2 = max;
 		unsigned idx = 0, idx2 = 0;
 		for (unsigned i = 0, cnt = layer_out.Neurons().size(); i != cnt; ++i) {
 			float value = layer_out.Neurons()[i]->OwnLevel();

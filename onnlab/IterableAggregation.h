@@ -132,8 +132,9 @@ public:
 
 		Iterator(IterableAggregation *parent, bool end): parent(parent), end(end) {
 			parent_appends_count = parent->appends_count;
+			item_idx = std::numeric_limits<unsigned>::max(); // To prepare flip to 0
+			item = nullptr;
 			if (!end) {
-				item_idx = std::numeric_limits<unsigned>::max(); // To prepare flip to 0
 				while (true) {
 					if (++item_idx == parent_appends_count) {
 						this->end = true;

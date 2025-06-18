@@ -134,7 +134,13 @@
     <ClCompile Include="BasicConvolutionI.cpp" />
     <ClCompile Include="exp_iReLU_1.cpp" />
     <ClCompile Include="exp_iReLU_mnist1.cpp" />
+    <ClCompile Include="exp_iReLU_ReLU_mnist_cmp2.cpp" />
+    <ClCompile Include="exp_nm1ilReLU_ReLU_mnist_cmp1.cpp" />
+    <ClCompile Include="exp_nm1ilReLU_ReLU_mnist_cmp2.cpp" />
+    <ClCompile Include="exp_nm1ilReLU_ReLU_mnist_CWL2_BIM_cmp1.cpp" />
+    <ClCompile Include="exp_ReLU_BIM_svsg.cpp" />
     <ClCompile Include="exp_ReLU_conv4.cpp" />
+    <ClCompile Include="exp_ReLU_CWL2_mnist1.cpp" />
     <ClCompile Include="exp_ReLU_mnist1.cpp" />
     <ClCompile Include="exp_nm1hReLU_1.cpp" />
     <ClCompile Include="exp_nm1hReLU_2.cpp" />
@@ -162,7 +168,7 @@
     <ClCompile Include="exp_ReLU_conv3.cpp" />
     <ClCompile Include="exp_iReLU_ReLU_mnist_cmp1.cpp" />
     <ClCompile Include="exp_ReLU_revB1.cpp" />
-    <ClCompile Include="exp_ReLU_CWL2.cpp" />
+    <ClCompile Include="exp_ReLU_CWL2_svsg.cpp" />
     <ClCompile Include="exp_ReLU_svsg1.cpp" />
     <ClCompile Include="exp_stabtest1.cpp" />
     <ClCompile Include="exp_ReLU_svsg2.cpp" />
@@ -170,9 +176,11 @@
     <ClCompile Include="onnlab.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BasicIterativeMethod.h" />
     <ClInclude Include="IterableAggregation.h" />
     <ClInclude Include="AtomicSpinlock.h" />
     <ClInclude Include="CarliniWagnerL2.h" />
+    <ClInclude Include="InertAccumulator.h" />
     <ClInclude Include="NetQualityCalcUtils.h" />
     <ClInclude Include="BasicConvolutionI.h" />
     <ClInclude Include="BatchNeuronBasicI.h" />
@@ -188,7 +196,11 @@
     <ClInclude Include="NeuronHoldingStaticLayer.h" />
     <ClInclude Include="NNB_ConvolutionEssence1d.h" />
     <ClInclude Include="NNB_ConvolutionEssence2d.h" />
+    <ClInclude Include="NNB_ConvolutionEssence3d.h" />
+    <ClInclude Include="NNB_ConvolutionEssence4d.h" />
     <ClInclude Include="NNB_Input_spyable.h" />
+    <ClInclude Include="NNB_ConvolutionMinMaxPoolingHead.h" />
+    <ClInclude Include="NNB_ReLU0.h" />
     <ClInclude Include="NNB_Storage.h" />
     <ClInclude Include="NNB_ConvolutionHead.h" />
     <ClInclude Include="NNB_ilReLU.h" />
@@ -222,9 +234,8 @@
     <ClInclude Include="NNB_Sigmoid.h" />
     <ClInclude Include="NNBasicsInterfaces.h" />
     <ClInclude Include="ErrorCalculatorI.h" />
-    <ClInclude Include="ReverseGuiderB1.h" />
+    <ClInclude Include="ReverseB1.h" />
     <ClInclude Include="ReverseGuiderB2.h" />
-    <ClInclude Include="SimpleBitCounter.h" />
     <ClInclude Include="SparceLayerStaticConnectomHolder2Mult.h" />
     <ClInclude Include="SparceLayerStaticConnectomHolderOneToOne.h" />
     <ClInclude Include="OptimizerI.h" />

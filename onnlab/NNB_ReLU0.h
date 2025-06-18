@@ -2,6 +2,7 @@
 #include "NNBasicsInterfaces.h"
 #include "BasicBackPropgI.h"
 #include "BatchNeuronBasicI.h"
+#include "LimitedNeuronI.h"
 
 #include <algorithm>
 #include <array>
@@ -9,12 +10,11 @@
 namespace nn
 {
 	template<unsigned BATCH_SIZE, bool KahanErrorSummation = false> requires (BATCH_SIZE > 0)
-		class NNB_ReLUb : public interfaces::NeuronBasicInterface, public interfaces::BasicBackPropogableInterface, public interfaces::BatchNeuronBasicI {
+		class NNB_ReLU0b : public interfaces::NeuronBasicInterface, public interfaces::BasicBackPropogableInterface, public interfaces::BatchNeuronBasicI, public interfaces::LimitedNeuronI {
 		std::array<float, BATCH_SIZE> accumulator;
 		std::array<float, BATCH_SIZE> backprop_error_accumulator;
 		[[msvc::no_unique_address]] [[no_unique_address]] std::conditional<KahanErrorSummation, std::array<float, BATCH_SIZE>, std::monostate>::type backprop_error_accumulator_kahan_compensation;
 		unsigned current_batch_size;
-		float negative_multiplier;
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 		std::vector<interfaces::ConnectionBasicInterface *> inputs;
 
@@ -35,15 +35,15 @@ namespace nn
 		}
 
 		inline void InnerActivationFunction(float &x) const {
-			x = (x < 0 ? negative_multiplier * x : x);
+			x = (x < 0 ? 0 : x);
 		}
 
-		NNB_ReLUb(const NNB_ReLUb &) = delete;
-		NNB_ReLUb &operator=(const NNB_ReLUb &) = delete;
+		NNB_ReLU0b(const NNB_ReLU0b &) = delete;
+		NNB_ReLU0b &operator=(const NNB_ReLU0b &) = delete;
 		public:
-			NNB_ReLUb(float negative_multiplier = 0.01f, unsigned batch_size = BATCH_SIZE):negative_multiplier(negative_multiplier), current_batch_size(batch_size) {
+
+			NNB_ReLU0b(unsigned batch_size = BATCH_SIZE):current_batch_size(batch_size) {
 				if (batch_size > BATCH_SIZE || batch_size == 0) throw std::exception("batch_size bigger than max batch size or is zero!");
-				if (negative_multiplier <= 0.0f || negative_multiplier >= 1.0f) throw std::exception("negative_multiplier must be in range (0, 1)!");
 				std::fill_n(accumulator.begin(), current_batch_size, 0.0f);
 				std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
 				if constexpr (KahanErrorSummation) {
@@ -51,7 +51,7 @@ namespace nn
 				}
 			}
 
-			~NNB_ReLUb() override {
+			~NNB_ReLU0b() override {
 				for (auto inp : inputs) {
 					inp->~ConnectionBasicInterface();
 				}
@@ -72,11 +72,11 @@ namespace nn
 			}
 
 			float ActivationFunction(float x) const override {
-				return (x < 0 ? negative_multiplier * x : x);
+				return (x < 0 ? 0 : x);
 			}
 
 			float ActivationFunctionDerivative(float x) const override {
-				return (x < 0 ? negative_multiplier : 1.0f);
+				return (x < 0 ? 0.0f : 1.0f);
 			}
 
 			void UpdateOwnLevel() override {
@@ -150,7 +150,15 @@ namespace nn
 				} else
 					throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
 			}
+
+			float UpperLimitValue() const override {
+				return std::numeric_limits<float>::infinity();
+			}
+
+			float LowerLimitValue() const override {
+				return 0.0f;
+			}
 	};
 
-	using NNB_ReLU = NNB_ReLUb<1, false>;
+	using NNB_ReLU0 = NNB_ReLU0b<1, false>;
 }

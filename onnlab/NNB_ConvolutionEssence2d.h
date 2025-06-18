@@ -55,6 +55,11 @@ namespace nn
 		}
 
 	public:
+		struct InputShape {
+			unsigned input_size_x, input_size_y;
+			InputShape(unsigned input_size_x, unsigned input_size_y): input_size_x(input_size_x), input_size_y(input_size_y) {}
+		};
+
 		struct KernelShape {
 			unsigned kernel_size_x, kernel_size_y;
 			KernelShape(unsigned square_kernel_size): kernel_size_x(square_kernel_size), kernel_size_y(square_kernel_size) {}
@@ -77,10 +82,13 @@ namespace nn
 			input_layer(input_layer), output_layer(output_layer), width(input_shape_x), kernel_x_size(kernel_shape.kernel_size_x), kernels_count(kernels_count), 
 			stride_x(kernel_movement.stride_x), stride_y(kernel_movement.stride_y), dilation_x(kernel_movement.dilation_x), dilation_y(kernel_movement.dilation_y) {
 			
-			if (input_shape_x < 2) {
+			unsigned div = input_layer->Neurons().size() / input_shape_x; // For compiler optimization
+			unsigned mod = input_layer->Neurons().size() % input_shape_x; // For compiler optimization
+
+			if (input_shape_x < 2 || div < 2) {
 				throw std::exception("Shape of input must be at least 2! (otherwise use 1d convolution)");
 			}
-			if (input_layer->Neurons().size() % input_shape_x) {
+			if (mod) {
 				throw std::exception("input_shape_x is uncorrect for currect input size!");
 			}
 			if (kernel_shape.kernel_size_x < 2 && kernel_shape.kernel_size_y < 2 || !kernel_shape.kernel_size_x || !kernel_shape.kernel_size_y || !stride_x || !stride_y || !dilation_x || !dilation_y) {
@@ -91,6 +99,40 @@ namespace nn
 			}
 			
 			Init(kernel_shape.kernel_size_y, allow_input_kernel_underfit);
+		}
+
+		NNB_ConvolutionEssence2d(interfaces::BasicLayerInterface *input_layer,
+								 interfaces::BasicLayerInterface *output_layer,
+								 InputShape input_shape,
+								 KernelShape kernel_shape,
+								 KernelMovement kernel_movement,
+								 unsigned kernels_count = 1,
+								 bool allow_input_kernel_underfit = false):
+			input_layer(input_layer), output_layer(output_layer), width(input_shape.input_size_x), kernel_x_size(kernel_shape.kernel_size_x), kernels_count(kernels_count),
+			stride_x(kernel_movement.stride_x), stride_y(kernel_movement.stride_y), dilation_x(kernel_movement.dilation_x), dilation_y(kernel_movement.dilation_y) {
+
+			if (input_shape.input_size_x < 2 || input_shape.input_size_y < 2) {
+				throw std::exception("Shape of input must be at least 2! (otherwise use 1d convolution)");
+			}
+			if (input_layer->Neurons().size() != input_shape.input_size_x * input_shape.input_size_y) {
+				throw std::exception("input_shape is uncorrect for currect input size!");
+			}
+			if (kernel_shape.kernel_size_x < 2 && kernel_shape.kernel_size_y < 2 || !kernel_shape.kernel_size_x || !kernel_shape.kernel_size_y || !stride_x || !stride_y || !dilation_x || !dilation_y) {
+				throw std::exception("Zeros in stride, dilation and kernel_size < 2 is not allowed!");
+			}
+			if (kernel_shape.kernel_size_x == 1 && dilation_x != 1 || kernel_shape.kernel_size_y == 1 && dilation_y != 1) {
+				throw std::exception("For kernel_size==1, dilation must be ==1");
+			}
+
+			Init(kernel_shape.kernel_size_y, allow_input_kernel_underfit);
+		}
+
+		static inline NNB_ConvolutionEssence2d BuildPoolingSetup(interfaces::BasicLayerInterface *input_layer,
+														  interfaces::BasicLayerInterface *output_layer,
+														  unsigned input_shape_x,
+														  KernelShape kernel_shape,
+														  bool allow_input_kernel_underfit = false) {
+			return NNB_ConvolutionEssence2d(input_layer, output_layer, input_shape_x, kernel_shape, KernelMovement(kernel_shape.kernel_size_x, kernel_shape.kernel_size_y, 1, 1), 1, allow_input_kernel_underfit);
 		}
 
 		void RecalcBatchSize() override {
@@ -155,6 +197,18 @@ namespace nn
 
 		unsigned GetKernelsCount() override {
 			return kernels_count;
+		}
+
+		virtual std::vector<unsigned> CalcInputShape() override {
+			return std::vector<unsigned> {width, input_layer->Neurons().size() / width, 1};
+		}
+
+		virtual std::vector<unsigned> CalcOutputShape() override {
+			return std::vector<unsigned> {places_x_count, places_count / places_x_count, kernels_count};
+		}
+
+		KernelShape CalcKernelShape() const {
+			return KernelShape(kernel_x_size, kernel_area / kernel_x_size);
 		}
 	};
 }

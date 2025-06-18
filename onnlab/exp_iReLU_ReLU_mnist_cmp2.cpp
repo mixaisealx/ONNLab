@@ -5,12 +5,11 @@
 #include "OptimizerAdam.h"
 #include "NNB_Linear.h"
 #include "NNB_ReLU.h"
+#include "NNB_iReLU.h"
 #include "NNB_Input.h"
 #include "NNB_ConstInput.h"
 #include "NNB_Layer.h"
 #include "NNB_LinearSlim.h"
-#include "NNB_ConvolutionHead.h"
-#include "NNB_ConvolutionEssence1d.h"
 #include "LearnGuiderFwBPgThreadAble.h"
 #include "DenseLayerStaticConnectomHolder.h"
 #include "NeuronHoldingStaticLayer.h"
@@ -27,31 +26,46 @@
 #include <thread>
 
 #include <iostream>
+#include <fstream>
+#include <syncstream>
 #include <iomanip>
+#include <typeinfo>
 
+static unsigned THREADS_COUNT = 16;
+static const unsigned LOG_INTERVAL = 400;
 
-void exp_ReLU_mnist1() {
-	std::cout << "exp_ReLU_mnist1" << std::endl;
+static const unsigned BATCH_SIZE = 64;
+static const unsigned EPOCHS = 10;
+static const float VALID_TEST_SPLIT_RATIO = 0.1f; // sizeof(validation)/sizeof(full testing dataset size), should be small to run fast
 
-	const unsigned THREADS_COUNT = 32;
-	const unsigned LOG_INTERVAL = 30;
+static const float LEARNING_RATE = 0.001f;
 
-	const unsigned BATCH_SIZE = 64;
-	const unsigned EPOCHS = 10;
-	const float VALID_TEST_SPLIT_RATIO = 0.1f; // sizeof(validation)/sizeof(full testing dataset size), should be small to run fast
+static const unsigned LAYER_HIDDEN1_SIZE = 32;
+static const unsigned LAYER_HIDDEN2_SIZE = 16;
 
-	const float LEARNING_RATE = 0.001f;
+struct MNIST_entry {
+	MNIST_entry(uint8_t label, std::vector<uint8_t> input, uint16_t reseve):label(label), input(input) {
+		input.reserve(reseve);
+	}
+	uint8_t label;
+	std::vector<uint8_t> input;
+};
 
-	const unsigned LAYER_HIDDEN1_SIZE = 64;
-	const unsigned LAYER_HIDDEN2_SIZE = 16;
+template<typename nnReLU>
+static inline std::tuple<float, float> MNIST_Train_setup(const std::vector<MNIST_entry> &mnist_train, const std::vector<MNIST_entry> &mnist_valid, const std::vector<MNIST_entry> &mnist_test, const std::vector<float> &weights_train, const std::vector<float> &weights_test);
 
-	struct MNIST_entry {
-		MNIST_entry(uint8_t label, std::vector<uint8_t> input, uint16_t reseve):label(label), input(input) {
-			input.reserve(reseve);
-		}
-		uint8_t label;
-		std::vector<uint8_t> input;
-	};
+static unsigned random_seed;
+
+void exp_iReLU_ReLU_mnist_cmp2() {
+	std::cout << "exp_iReLU_ReLU_mnist_cmp2" << std::endl;
+
+	std::cout << "Enter the overall threads count: ";
+	{
+		unsigned temp;
+		std::cin >> temp;
+		THREADS_COUNT = temp / 2;
+	}
+	std::cout << "Resulting threads distribution: " << THREADS_COUNT << " + " << THREADS_COUNT << " = " << THREADS_COUNT + THREADS_COUNT << '\n';
 
 	std::cout << "Loading train dataset...\n";
 
@@ -99,21 +113,65 @@ void exp_ReLU_mnist1() {
 	mnist_test_classes_w.CalcWeights();
 	mnist_test_classes_w.KeepWeightsOnly();
 
-	//std::random_device randevice;
-	std::mt19937 preudorandom(42);
+	std::random_device randevice;
 
-	std::shuffle(mnist_test.begin(), mnist_test.end(), preudorandom);
+	std::mt19937 preudorand_determined(42);
+	std::shuffle(mnist_test.begin(), mnist_test.end(), preudorand_determined);
 	std::vector<MNIST_entry> mnist_valid;
 	mnist_valid.reserve(static_cast<unsigned>(VALID_TEST_SPLIT_RATIO * mnist_test.size()));
 	{
 		std::copy_n(mnist_test.begin(), mnist_valid.capacity(), std::back_inserter(mnist_valid));
 	}
 
+	unsigned loop_id = 0;
+	while (true) {
+		random_seed = randevice();
+		std::cout << "===================================================\n";
+		std::cout << "================ NEW TRAINING LOOP ================\n";
+		std::cout << "===================================================\n";
+		std::cout << "LOOP INDEX: " << ++loop_id << '\n';
+		std::cout << "RANDOM SEED: " << random_seed << std::endl;
+		std::cout << "===================================================\n";
+
+		std::mt19937 preudorandom(random_seed);
+
+		auto Trainer_ReLU = [&]() {
+			auto [relu_acc, relu_f1] = MNIST_Train_setup<nn::NNB_ReLUb<BATCH_SIZE, true>>(mnist_train, mnist_valid, mnist_test, mnist_train_classes_w.GetWeights(), mnist_test_classes_w.GetWeights());
+			std::ofstream log("exp_iReLU_ReLU_mnist_cmp2_relu.log", std::ios::app);
+			log << relu_acc << '\t' << relu_f1 << '\n';
+			log.close();
+		};
+
+		auto Trainer_iReLU = [&]() {
+			auto [irelu_acc, irelu_f1] = MNIST_Train_setup<nn::NNB_iReLUb<BATCH_SIZE, true>>(mnist_train, mnist_valid, mnist_test, mnist_train_classes_w.GetWeights(), mnist_test_classes_w.GetWeights());
+			std::ofstream log("exp_iReLU_ReLU_mnist_cmp2_irelu.log", std::ios::app);
+			log << irelu_acc << '\t' << irelu_f1 << '\n';
+			log.close();
+		};
+
+		std::thread wrk_relu(Trainer_ReLU);
+		std::thread wrk_irelu(Trainer_iReLU);
+
+		wrk_relu.join();
+		wrk_irelu.join();
+	}
+}
+
+template <typename T>
+struct TypeName {
+	static const char *Get() {
+		return typeid(T).name();
+	}
+};
+
+template<typename nnReLU>
+static inline std::tuple<float, float> MNIST_Train_setup(const std::vector<MNIST_entry> &mnist_train_sample, const std::vector<MNIST_entry> &mnist_valid, const std::vector<MNIST_entry> &mnist_test, const std::vector<float> &weights_train, const std::vector<float> &weights_test) {
+	std::mt19937 preudorandom(random_seed);
 	std::uniform_real_distribution<float> randistributor(0.01f, 0.1f);
 
 	const unsigned INPUT_SIZE = 28 * 28;
 
-	using nnReLU = nn::NNB_ReLUb<BATCH_SIZE, true>; // Using Kahan summation
+	std::vector<MNIST_entry> mnist_train = mnist_train_sample;
 
 	// Input image (like vector, flatten)
 	std::vector<std::array<float, INPUT_SIZE>> inputs_store(BATCH_SIZE);
@@ -150,7 +208,7 @@ void exp_ReLU_mnist1() {
 
 	using OptimAlg = nn::optimizers::Adam;
 	OptimAlg optimizer(LEARNING_RATE);
-	
+
 	// Connections
 	// Bias
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection<OptimAlg>> connection_bias_hid1(&layer_bias, &layer_hid1, [&](nn::NNB_Connection<OptimAlg> *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
@@ -178,15 +236,13 @@ void exp_ReLU_mnist1() {
 	nn::LearnGuiderFwBPg learnguider_single({ &layer_hid1, &layer_hid2, &layer_out }, BATCH_SIZE); // Evaluator for validating & testing
 
 	const float UINT8_NORM = 1.0f / 255.0f;
-	
+
 	// Learning
 	std::vector<std::vector<float>> perfect_out_store(BATCH_SIZE, std::vector<float>(10));
 	std::vector<unsigned short> perfect_outs(BATCH_SIZE);
 
-	nn::netquality::F1scoreMulticlassWeightsGlobal f1score_train_calculator(mnist_train_classes_w.GetWeights());
-	nn::netquality::F1scoreMulticlassWeightsGlobal f1score_test_calculator(mnist_test_classes_w.GetWeights());
-
-	std::cout << std::fixed << std::setprecision(3);
+	nn::netquality::F1scoreMulticlassWeightsGlobal f1score_train_calculator(weights_train);
+	nn::netquality::F1scoreMulticlassWeightsGlobal f1score_test_calculator(weights_test);
 
 	std::atomic_flag data_is_ready_for_workers;
 	std::atomic_uint workers_is_ready_for_data;
@@ -194,7 +250,7 @@ void exp_ReLU_mnist1() {
 
 	bool calc_loss = false;
 	std::atomic<float> threads_loss;
-	
+
 	auto TrainWorkerThread = [&](unsigned worker_id) {
 		std::vector<std::vector<float>> caches(learnguider_multhr.GetRequiredCachesCount());
 		nn::errcalc::ErrorCalcSoftMAX softmax_calculator(10);
@@ -203,15 +259,15 @@ void exp_ReLU_mnist1() {
 		while (threads_run) {
 			data_is_ready_for_workers.wait(false, std::memory_order_acquire);
 
-			if (!threads_run) 
+			if (!threads_run)
 				break;
-			
+
 			loss = 0.0f;
 			// Learning
 			learnguider_multhr.WorkerDoForward(worker_id, &caches[0]);
 			loss += learnguider_multhr.WorkerFillupOutsError(worker_id, &softmax_calculator, perfect_out_store, calc_loss);
 			learnguider_multhr.WorkerDoBackward(worker_id, &caches[0]);
-			
+
 			// Loss & local accuracy
 			if (calc_loss) {
 				f1score_train_calculator.AppendResultsThreadSafe(learnguider_multhr.GetOutputs(), perfect_out_store, worker_id, THREADS_COUNT);
@@ -230,7 +286,9 @@ void exp_ReLU_mnist1() {
 	for (unsigned i = 0; i != THREADS_COUNT; ++i) {
 		workers.emplace_back(TrainWorkerThread, i);
 	}
-	
+
+	std::osyncstream(std::cout) << TypeName<nnReLU>::Get() << ": Training... " << '\n';
+
 	unsigned current_threads_count;
 	unsigned log_iterations = 0;
 	unsigned batch_iterations = 0;
@@ -277,7 +335,7 @@ void exp_ReLU_mnist1() {
 				current_threads_count = workers_is_ready_for_data.load(std::memory_order_acquire);
 			} while (current_threads_count != THREADS_COUNT);
 			workers_is_ready_for_data.store(0, std::memory_order_release);
-			
+
 			if (calc_loss) {
 				float loss = threads_loss.load(std::memory_order_relaxed);
 				threads_loss.store(0.0f, std::memory_order_relaxed);
@@ -285,7 +343,7 @@ void exp_ReLU_mnist1() {
 				float accuracy = f1score_train_calculator.CalcAccuracy();
 				f1score_train_calculator.Reset();
 				loss /= BATCH_SIZE;
-				std::cout << "Epoch: " << (epoch + 1) << "  Batch: " << std::setfill('0') << std::setw(3) << batch_iterations << '/' << batch_iterations_all << "  Loss: " << loss << "  Accuracy(local): " << accuracy << "%  F1(local): " << f1 << "\n";
+				std::osyncstream(std::cout) << TypeName<nnReLU>::Get() << std::fixed << std::setprecision(3) << ": Epoch: " << (epoch + 1) << "  Batch: " << std::setfill('0') << std::setw(3) << batch_iterations << '/' << batch_iterations_all << "  Loss: " << loss << "  Accuracy(local): " << accuracy << "%  F1(local): " << f1 << "\n";
 			}
 		} while (datase_current_pos != datase_end);
 
@@ -315,7 +373,7 @@ void exp_ReLU_mnist1() {
 				f1score_test_calculator.AppendResult(nn::netquality::NeuroArgmax(learnguider_single.GetOutputs(), batch_i), perfect_outs[batch_i]);
 			}
 		}
-		std::cout << "\t\t\t\t\tAccuracy (validation dataset): " << f1score_test_calculator.CalcAccuracy() << "%  F1: " << f1score_test_calculator.CalcF1() << "\n";
+		std::osyncstream(std::cout) << TypeName<nnReLU>::Get() << std::fixed << std::setprecision(3) << ": Accuracy (validation dataset): " << f1score_test_calculator.CalcAccuracy() << "%  F1: " << f1score_test_calculator.CalcF1() << "\n";
 		f1score_test_calculator.Reset();
 	}
 
@@ -327,9 +385,9 @@ void exp_ReLU_mnist1() {
 	for (auto &thr : workers) {
 		thr.join();
 	}
-	
 
-	std::cout << "Accuracy calculating...\n";
+
+	std::osyncstream(std::cout) << TypeName<nnReLU>::Get() << ": Accuracy calculating...\n";
 
 	// Accuracy calc
 	auto TestWorkerThread = [&](unsigned worker_id) {
@@ -366,7 +424,7 @@ void exp_ReLU_mnist1() {
 	auto test_current_pos = mnist_test.cbegin();
 	auto test_end = mnist_test.cend();
 	batch_iterations_all = mnist_test.size() / BATCH_SIZE;
-	
+
 	log_iterations = 0;
 	while (true) {
 		// Update inputs
@@ -387,7 +445,7 @@ void exp_ReLU_mnist1() {
 		++batch_count;
 		if (++log_iterations == LOG_INTERVAL) {
 			log_iterations = 0;
-			std::cout << "Batch: " << batch_count << '/' << batch_iterations_all << '\n';
+			std::osyncstream(std::cout) << TypeName<nnReLU>::Get() << ": Batch: " << batch_count << '/' << batch_iterations_all << '\n';
 		}
 
 		data_is_ready_for_workers.test_and_set(std::memory_order_release);
@@ -408,16 +466,14 @@ void exp_ReLU_mnist1() {
 	data_is_ready_for_workers.test_and_set(std::memory_order_relaxed);
 	data_is_ready_for_workers.notify_all();
 
-	std::cout << "Accuracy (test dataset): " << f1score_test_calculator.CalcAccuracy() << "%  F1: " << f1score_test_calculator.CalcF1() << "\n";
-	std::cout << "F1-score per class:\n";
-	for (short i = 0; i != 10; ++i) {
-		std::cout << "Class " << i << ": " << f1score_test_calculator.CalcF1ForClass(i) << '\n';
-	}
+	float accuracy = f1score_test_calculator.CalcAccuracy();
+	float f1 = f1score_test_calculator.CalcF1();
+	std::osyncstream(std::cout) << TypeName<nnReLU>::Get() << std::fixed << std::setprecision(3) << ": Accuracy (test dataset): " << accuracy << "%  F1: " << f1 << "\n";
 
 	f1score_test_calculator.Reset();
 
 	for (auto &thr : workers) {
 		thr.join();
 	}
-	return;
+	return std::tuple(accuracy, f1);
 }

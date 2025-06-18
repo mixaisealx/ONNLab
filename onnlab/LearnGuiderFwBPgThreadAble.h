@@ -71,7 +71,7 @@ namespace nn
 			return batch_size;
 		}
 		
-		inline float FillupOutsError(unsigned worker_id, interfaces::ErrorCalculatorI *ecalc, const std::vector<std::vector<float>> &perfect_result, bool perform_loss_calculation = false) {
+		inline float WorkerFillupOutsError(unsigned worker_id, interfaces::ErrorCalculatorI *ecalc, const std::vector<std::vector<float>> &perfect_result, bool perform_loss_calculation = false) {
 			float loss = 0.0f;
 
 			for (unsigned channel = worker_id; channel < batch_size; channel += threads_count) {
@@ -120,6 +120,52 @@ namespace nn
 
 			threads_barrier->arrive_and_wait();
 
+			return loss;
+		}
+
+		inline float FillupOutsError(interfaces::ErrorCalculatorI *ecalc, const std::vector<float> &perfect_result, unsigned channel, bool perform_loss_calculation = false) {
+			float loss = 0;
+			ecalc->ResetState();
+
+			const float *pptr = &perfect_result[0];
+			for (auto nrn : outs) {
+				if (!std::isnan(nrn->OwnLevel(channel))) {
+					ecalc->ProcessNeuronError(nrn->OwnLevel(channel), *pptr++);
+				} else { // NaN is not allowed if Custom backprop in standalone mode
+					auto &candidates = dynamic_cast<nn::interfaces::CustomBackPropogableInterface *>(nrn)->RetriveCandidates();
+					for (auto &cand : candidates) {
+						ecalc->ProcessNeuronError(cand.value, *pptr);
+					}
+					++pptr;
+				}
+			}
+
+			ecalc->DoCalc();
+			if (perform_loss_calculation) {
+				loss = ecalc->CalcLoss();
+			}
+
+			nn::interfaces::CustomBackPropogableInterface *special;
+			for (auto nrn : outs) {
+				special = dynamic_cast<nn::interfaces::CustomBackPropogableInterface *>(nrn);
+				if (special == nullptr || !special->IsCustomBackPropAvailable()) {
+					InterlockedBackPropAccumulateError(dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(nrn), ecalc->GetNeuronPartialError(), channel);
+				} else {
+					unsigned idx_min = 0;
+					float error_min = ecalc->GetNeuronPartialError();
+					float current_error;
+					for (unsigned idx = 1, end = special->RetriveCandidates().size(); idx < end; ++idx) {
+						current_error = ecalc->GetNeuronPartialError();
+						if (std::fabs(current_error) < std::fabs(error_min)) {
+							error_min = current_error;
+							idx_min = idx;
+						}
+					}
+					locker.lock();
+					special->SelectBestCandidate(special->RetriveCandidates()[idx_min].id, error_min);
+					locker.unlock();
+				}
+			}
 			return loss;
 		}
 

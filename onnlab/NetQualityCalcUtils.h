@@ -6,7 +6,7 @@ namespace nn::netquality
 {
 	inline unsigned short NeuroArgmax(const std::vector<nn::interfaces::NBI *> &neurons, unsigned channel) {
 		unsigned short maxi = 0;
-		float max = std::numeric_limits<float>::min();
+		float max = -std::numeric_limits<float>::infinity();
 		float curr;
 		for (unsigned short idx = 0; idx != neurons.size(); ++idx) {
 			curr = neurons[idx]->OwnLevel(channel);
@@ -20,7 +20,7 @@ namespace nn::netquality
 
 	inline unsigned short VectorArgmax(const std::vector<float> &values) {
 		unsigned short maxi = 0;
-		float max = std::numeric_limits<float>::min();
+		float max = -std::numeric_limits<float>::infinity();
 		float curr;
 		for (unsigned short idx = 0; idx != values.size(); ++idx) {
 			curr = values[idx];

@@ -11,24 +11,28 @@
 #include "NeuronHoldingStaticLayer.h"
 #include "IterableAggregation.h"
 
-//#include "CarliniWagnerL2.h"
+#include "BasicIterativeMethod.h"
 
 #include <vector>
 #include <random>
 #include <array>
-#include <tuple>
 
 #include <iostream>
+#include <iomanip>
 
 static std::vector<float> Learn_ReLU_svsg2();
 static bool Validate_ReLU_svsg2(nn::LearnGuiderFwBPg &learnguider);
+static std::vector<float> Infer_ReLU_svsg2(nn::LearnGuiderFwBPg &inferguider, std::vector<float> &inputs);
 
-void exp_ReLU_CWL2() {
-	std::cout << "exp_ReLU_CWL2" << std::endl;
+void exp_ReLU_BIM_svsg() {
+	std::cout << "exp_ReLU_BIM_svsg" << std::endl;
 
 	auto weights = Learn_ReLU_svsg2();
 
-	const unsigned ATTACK_BATCH_SIZE = 4;
+	const unsigned THREADS_COUNT = 8;
+
+	const unsigned ATTACK_BATCH_SIZE = 8;
+	const unsigned RANDOM_SEED = 43;
 
 	// Input vector
 	std::array<std::array<float, 7>, ATTACK_BATCH_SIZE> inputs_store;
@@ -37,8 +41,9 @@ void exp_ReLU_CWL2() {
 	}
 
 	// Input layer
-	nn::NeuronHoldingStaticLayer<nn::NNB_Input_spyableB<ATTACK_BATCH_SIZE>> layer_inp(7, [&](nn::NNB_Input_spyableB<ATTACK_BATCH_SIZE> *const mem_ptr, unsigned index) {
-		new(mem_ptr)nn::NNB_Input_spyableB<ATTACK_BATCH_SIZE>([&](float **storage, unsigned capacity, unsigned &count) {
+	using InputN = nn::NNB_Input_spyableB<ATTACK_BATCH_SIZE, true>;
+	nn::NeuronHoldingStaticLayer<InputN> layer_inp(7, [&](InputN *const mem_ptr, unsigned index) {
+		new(mem_ptr)InputN([&](float **storage, unsigned capacity, unsigned &count) {
 			count = capacity;
 			for (size_t i = 0; i != capacity; ++i) {
 				storage[i] = &inputs_store[i][index];
@@ -46,21 +51,22 @@ void exp_ReLU_CWL2() {
 		});
 	});
 	// Hidden layer 1
-	nn::NeuronHoldingStaticLayer<nn::NNB_ReLUb<ATTACK_BATCH_SIZE>> layer_relu1(6, [&](nn::NNB_ReLUb<ATTACK_BATCH_SIZE> *const mem_ptr, unsigned) {
-		new(mem_ptr)nn::NNB_ReLUb<ATTACK_BATCH_SIZE>;
+	using HiddenN = nn::NNB_ReLUb<ATTACK_BATCH_SIZE, true>;
+	nn::NeuronHoldingStaticLayer<HiddenN> layer_relu1(6, [&](HiddenN *const mem_ptr, unsigned) {
+		new(mem_ptr)HiddenN;
 	});
 	// Output layer
-	nn::NeuronHoldingStaticLayer<nn::NNB_ReLUb<ATTACK_BATCH_SIZE>> layer_out(11, [&](nn::NNB_ReLUb<ATTACK_BATCH_SIZE> *const mem_ptr, unsigned) {
-		new(mem_ptr)nn::NNB_ReLUb<ATTACK_BATCH_SIZE>;
+	nn::NeuronHoldingStaticLayer<HiddenN> layer_out(11, [&](HiddenN *const mem_ptr, unsigned) {
+		new(mem_ptr)HiddenN;
 	});
 	// Connections
 	using NoOptim = nn::optimizers::GradientDescendent;
-	NoOptim optimizer(0.0f); // Disable learning
+	NoOptim optimDummy(0.0f); // Disable learning
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection<NoOptim>> connections_inp_lr1(&layer_inp, &layer_relu1, [&](nn::NNB_Connection<NoOptim> *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection<NoOptim>(from, to, &optimizer);
+		new(mem_ptr)nn::NNB_Connection<NoOptim>(from, to, &optimDummy);
 	});
 	nn::DenseLayerStaticConnectomHolder<nn::NNB_Connection<NoOptim>> connections_lr1_out(&layer_relu1, &layer_out, [&](nn::NNB_Connection<NoOptim> *const mem_ptr, nn::interfaces::NBI *from, nn::interfaces::NBI *to) {
-		new(mem_ptr)nn::NNB_Connection<NoOptim>(from, to, &optimizer);
+		new(mem_ptr)nn::NNB_Connection<NoOptim>(from, to, &optimDummy);
 	});
 
 	{ // Restoring weights
@@ -77,31 +83,122 @@ void exp_ReLU_CWL2() {
 	}
 
 	nn::errcalc::ErrorCalcSoftMAX softmax_calculator(11);
-	nn::LearnGuiderFwBPg learnguider({ &layer_inp, &layer_relu1, &layer_out }, &softmax_calculator, ATTACK_BATCH_SIZE);
+	nn::LearnGuiderFwBPg inferguider({ &layer_inp, &layer_relu1, &layer_out }, &softmax_calculator, ATTACK_BATCH_SIZE);
 
-	if (Validate_ReLU_svsg2(learnguider)) {
+	if (Validate_ReLU_svsg2(inferguider)) {
 		std::cout << "Ready.\n";
 	} else {
 		std::cout << "Error!\n";
 		return;
 	}
 
-	std::vector<float> outputs(11, 0.5f);
-	learnguider.FillupOutsError(outputs, 0);
-	learnguider.FillupOutsError(outputs, 1);
-	learnguider.FillupOutsError(outputs, 2);
-	learnguider.FillupOutsError(outputs, 3);
-	learnguider.DoBackward();
+	std::mt19937 preudorandom(RANDOM_SEED);
+	std::uniform_real_distribution<float> randistributor(0.0f, 1.0f);
+	std::uniform_int_distribution<unsigned short> randistributor_cls(0, 9);
 
-	for (auto &nrn : layer_inp.NeuronsInside()) {
-		nrn.BackPropResetError();
+	std::vector<std::vector<float>> sources(ATTACK_BATCH_SIZE, std::vector<float>(7));
+	for (auto &bth : sources) {
+		for (auto &pxl : bth) {
+			pxl = randistributor(preudorandom);
+		}
+	}
+	std::vector<unsigned short> targets(ATTACK_BATCH_SIZE);
+	for (auto &tgt : targets) {
+		tgt = randistributor_cls(preudorandom);
+	}
+
+	{
+		std::cout << "Running BIM...\n";
+		nn::reverse::BasicIterativeMethodParams bimparams;
+		bimparams.box_min = 0.0f;
+		bimparams.box_max = 1.0f;
+		bimparams.early_stop_chances_count = 16;
+		//bimparams.allow_early_stop = false;
+
+		nn::reverse::BasicIterativeMethod bim(inferguider, bimparams, ATTACK_BATCH_SIZE);
+
+		std::vector<std::vector<float>> sources_copy(sources);
+		auto res = bim.RunAttack(sources_copy, targets);
+
+		std::cout << "Results:\n";
+
+		std::cout << std::fixed << std::setprecision(3);
+
+		auto rit = res.begin();
+		auto tit = targets.begin();
+		for (auto &attk : sources_copy) {
+			auto result = Infer_ReLU_svsg2(inferguider, attk);
+			unsigned cls = nn::netquality::VectorArgmax(result);
+
+			if (cls == *tit) {
+				std::cout << "Success, class: " << cls << " ;" << *rit << "\n";
+			} else {
+				std::cout << "[!] Failed, target class: " << *tit << " ;" << *rit << "\n";
+			}
+			++rit;
+			++tit;
+		}
+	}
+
+	{
+		std::cout << "========\n";
+		std::cout << "Running Multi-Thread BIM...\n";
+		nn::LearnGuiderFwBPgThreadAble inferguider_thr({ &layer_inp, &layer_relu1, &layer_out }, ATTACK_BATCH_SIZE, THREADS_COUNT);
+
+		nn::reverse::BasicIterativeMethodParams bimparams;
+		bimparams.box_min = 0.0f;
+		bimparams.box_max = 1.0f;
+		bimparams.early_stop_chances_count = 16;
+		//bimparams.allow_early_stop = false;
+
+		nn::reverse::BasicIterativeMethodThreadAble cwl2(inferguider_thr, bimparams, ATTACK_BATCH_SIZE, THREADS_COUNT);
+
+		std::vector<std::vector<float>> sources_copy(sources);
+		auto res = cwl2.RunAttack(sources_copy, targets);
+
+		std::cout << "Results Multi-Thread:\n";
+
+		std::cout << std::fixed << std::setprecision(3);
+
+		auto rit = res.begin();
+		auto tit = targets.begin();
+		for (auto &attk : sources_copy) {
+			auto result = Infer_ReLU_svsg2(inferguider, attk);
+			unsigned cls = nn::netquality::VectorArgmax(result);
+
+			if (cls == *tit) {
+				std::cout << "Success, class: " << cls << " ;" << *rit << "\n";
+			} else {
+				std::cout << "[!] Failed, target class: " << *tit << " ;" << *rit << "\n";
+			}
+			++rit;
+			++tit;
+		}
 	}
 
 	return;
 }
 
+static std::vector<float> Infer_ReLU_svsg2(nn::LearnGuiderFwBPg &inferguider, std::vector<float> &inputs) {
+	std::vector<float> outputs(11);
 
-static bool Validate_ReLU_svsg2(nn::LearnGuiderFwBPg &learnguider) {
+	auto &inputsnr = inferguider.GetLayers()[0]->Neurons();
+
+	// Update inputs
+	for (size_t idx = 0; idx != inputs.size(); ++idx) {
+		dynamic_cast<nn::interfaces::InputNeuronI *>(inputsnr[idx])->SetOwnLevel(inputs[idx]);
+	}
+
+	inferguider.DoForward();
+
+	for (int i = 0, cnt = inferguider.GetOutputs().size(); i != cnt; ++i) {
+		outputs[i] = inferguider.GetOutputs()[i]->OwnLevel();
+	}
+
+	return outputs;
+}
+
+static bool Validate_ReLU_svsg2(nn::LearnGuiderFwBPg &inferguider) {
 	struct datarow {
 		datarow(std::initializer_list<unsigned> inputs_nonzero_idx, std::initializer_list<unsigned> outputs_nonzero_idx) {
 			inputs.fill(0.0f);
@@ -125,7 +222,7 @@ static bool Validate_ReLU_svsg2(nn::LearnGuiderFwBPg &learnguider) {
 		datarow({0,1,2,3,4,6}, {9})
 	};
 
-	auto &inputs = learnguider.GetLayers()[0]->Neurons();
+	auto &inputs = inferguider.GetLayers()[0]->Neurons();
 
 	std::vector<std::tuple<unsigned, std::tuple<unsigned, float>, std::tuple<unsigned, float>>> results;
 	for (const auto &sample : traindata) {
@@ -134,12 +231,12 @@ static bool Validate_ReLU_svsg2(nn::LearnGuiderFwBPg &learnguider) {
 			dynamic_cast<nn::interfaces::InputNeuronI *>(inputs[idx])->SetOwnLevel(sample.inputs[idx]);
 		}
 		// Inference
-		learnguider.DoForward();
+		inferguider.DoForward();
 
-		float max = std::numeric_limits<float>::min();
+		float max = -std::numeric_limits<float>::infinity();
 		int idx = -1;
-		for (int i = 0, cnt = learnguider.GetOutputs().size(); i != cnt; ++i) {
-			float value = learnguider.GetOutputs()[i]->OwnLevel();
+		for (int i = 0, cnt = inferguider.GetOutputs().size(); i != cnt; ++i) {
+			float value = inferguider.GetOutputs()[i]->OwnLevel();
 			if (max < value) {
 				max = value;
 				idx = i;
@@ -198,6 +295,13 @@ static std::vector<float> Learn_ReLU_svsg2() {
 		new(mem_ptr)nn::NNB_Connection<OptimAdam>(from, to, &optimizer, randistributor(preudorandom));
 	});
 
+	/* Shape is 7-segment digit input.
+	*  61112
+	*  6   2
+	*  00000
+	*  5   3
+	*  54443
+	*/
 	struct datarow {
 		datarow(std::initializer_list<unsigned> inputs_nonzero_idx, std::initializer_list<unsigned> outputs_nonzero_idx) {
 			inputs.fill(0.0f);

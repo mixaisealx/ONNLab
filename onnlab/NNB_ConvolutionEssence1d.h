@@ -26,9 +26,9 @@ namespace nn
 		NNB_ConvolutionEssence1d &operator=(const NNB_ConvolutionEssence1d &) = delete;
 	public:
 		NNB_ConvolutionEssence1d(interfaces::BasicLayerInterface *input_layer,
-							   interfaces::BasicLayerInterface *output_layer,
-							   unsigned kernel_size, unsigned kernels_count = 1, unsigned stride = 1, unsigned dilation = 1, bool allow_input_kernel_underfit = false):input_layer(input_layer), output_layer(output_layer), kernel_size(kernel_size), kernels_count(kernels_count), stride(stride), dilation(dilation) {
-			
+								 interfaces::BasicLayerInterface *output_layer,
+								 unsigned kernel_size, unsigned kernels_count = 1, unsigned stride = 1, unsigned dilation = 1, bool allow_input_kernel_underfit = false):input_layer(input_layer), output_layer(output_layer), kernel_size(kernel_size), kernels_count(kernels_count), stride(stride), dilation(dilation) {
+
 			if (kernel_size < 2 || !stride || !dilation) {
 				throw std::exception("Zeros in stride, dilation and kernel_size < 2 is not allowed!");
 			}
@@ -47,6 +47,13 @@ namespace nn
 			} else if (places_count * kernels_count != output_layer->Neurons().size()) {
 				throw std::exception("The input layer in not appropriate for output layer of such size!");
 			}
+		}
+
+		static inline NNB_ConvolutionEssence1d BuildPoolingSetup(interfaces::BasicLayerInterface *input_layer,
+														  interfaces::BasicLayerInterface *output_layer, 
+														  unsigned kernel_size,
+														  bool allow_input_kernel_underfit = false) {
+			return NNB_ConvolutionEssence1d(input_layer, output_layer, kernel_size, 1, kernel_size, 1, allow_input_kernel_underfit);
 		}
 
 		void RecalcBatchSize() override {
@@ -105,6 +112,14 @@ namespace nn
 
 		unsigned GetKernelsCount() override {
 			return kernels_count;
+		}
+
+		virtual std::vector<unsigned> CalcInputShape() override {
+			return std::vector<unsigned> {input_layer->Neurons().size(), 1};
+		}
+
+		virtual std::vector<unsigned> CalcOutputShape() override {
+			return std::vector<unsigned> {places_count, kernels_count};
 		}
 	};
 }

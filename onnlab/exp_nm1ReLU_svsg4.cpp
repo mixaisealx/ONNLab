@@ -265,7 +265,7 @@ void exp_nm1ReLU_svsg4() {
 		// Inference
 		learnguider_rl.DoForward();
 
-		float max = std::numeric_limits<float>::min(), max2 = max;
+		float max = -std::numeric_limits<float>::infinity(), max2 = max;
 		int idx = -1, idx2 = -1;
 		for (unsigned i = 0, cnt = layer_smout.Neurons().size(); i != cnt; ++i) {
 			float value = layer_smout.Neurons()[i]->OwnLevel();
@@ -300,7 +300,7 @@ void exp_nm1ReLU_svsg4() {
 		// Inference
 		learnguider_m1.DoForward();
 
-		float max = std::numeric_limits<float>::min(), max2 = max;
+		float max = -std::numeric_limits<float>::infinity(), max2 = max;
 		int idx = -1, idx2 = -1;
 		for (unsigned i = 0, cnt = layer_m1out.Neurons().size(); i != cnt; ++i) {
 			float value = layer_m1out.Neurons()[i]->OwnLevel();
