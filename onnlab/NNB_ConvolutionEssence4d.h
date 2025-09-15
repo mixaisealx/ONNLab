@@ -6,6 +6,9 @@
 #include "BasicBackPropgI.h"
 #include "BatchNeuronBasicI.h"
 
+#include <limits>
+#include <stdexcept>
+
 namespace nn
 {
 	class NNB_ConvolutionEssence4d : public nn::interfaces::BasicConvolutionEssenceI {
@@ -33,7 +36,7 @@ namespace nn
 			unsigned emplaceable_size = canval_sz - (kernel_sz + (kernel_sz - 1) * (dilation - 1));
 			places_count = emplaceable_size / stride + 1;
 			if (!allow_input_kernel_underfit && emplaceable_size % stride) { // Check if layers have appropriate sizes
-				throw std::exception("That kernel_size and stride in not appropriate for input layer of such size!");
+				throw std::runtime_error("That kernel_size and stride in not appropriate for input layer of such size!");
 			}
 		}
 
@@ -42,7 +45,7 @@ namespace nn
 
 			for (auto elem : output_layer->Neurons()) {
 				if (!dynamic_cast<nn::interfaces::InputNeuronI *>(elem) || !dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(elem)) {
-					throw std::exception("The output layer must consist of neurons based on interfaces::InputNeuronI!");
+					throw std::runtime_error("The output layer must consist of neurons based on interfaces::InputNeuronI!");
 				}
 			}
 
@@ -66,7 +69,7 @@ namespace nn
 			kernel_volume = kernel_dims.w;
 			places_count = places_dims.w;
 			if (places_count * kernels_count != output_layer->Neurons().size()) {
-				throw std::exception("The input layer in not appropriate for output layer of such size!");
+				throw std::runtime_error("The input layer in not appropriate for output layer of such size!");
 			}
 		}
 
@@ -104,13 +107,13 @@ namespace nn
 				!kernel_shape.kernel_size_x || !kernel_shape.kernel_size_y || !kernel_shape.kernel_size_z || !kernel_shape.kernel_size_w ||
 				!kernel_movement.stride_x || !kernel_movement.stride_y || !kernel_movement.stride_z || !kernel_movement.stride_w ||
 				!kernel_movement.dilation_x || !kernel_movement.dilation_y || !kernel_movement.dilation_z || !kernel_movement.dilation_w) {
-				throw std::exception("Zeros in stride, dilation and kernel_size < 2 is not allowed!");
+				throw std::runtime_error("Zeros in stride, dilation and kernel_size < 2 is not allowed!");
 			}
 			if (kernel_shape.kernel_size_x == 1 && kernel_movement.dilation_x != 1 ||
 				kernel_shape.kernel_size_y == 1 && kernel_movement.dilation_y != 1 ||
 				kernel_shape.kernel_size_z == 1 && kernel_movement.dilation_z != 1 || 
 				kernel_shape.kernel_size_w == 1 && kernel_movement.dilation_w != 1) {
-				throw std::exception("For kernel_size==1, dilation must be ==1");
+				throw std::runtime_error("For kernel_size==1, dilation must be ==1");
 			}
 
 			unsigned volume = input_shape.input_size_x * input_shape.input_size_y * input_shape.input_size_z;
@@ -120,11 +123,11 @@ namespace nn
 			volume *= input_shape.input_size_w;
 
 			if (input_layer->Neurons().size() != volume) {
-				throw std::exception("input_shape is uncorrect for currect input size!");
+				throw std::runtime_error("input_shape is uncorrect for currect input size!");
 			}
 
 			if (input_shape.input_size_x < 2 || input_shape.input_size_y < 2 || input_shape.input_size_z < 2 || input_shape.input_size_w < 2) {
-				throw std::exception("Shape of input must be at least 2! (otherwise use 2d convolution)");
+				throw std::runtime_error("Shape of input must be at least 2! (otherwise use 2d convolution)");
 			}
 
 			canvas_dims = Size4d{ input_shape.input_size_x, input_shape.input_size_y, input_shape.input_size_z, input_shape.input_size_w };
@@ -155,7 +158,7 @@ namespace nn
 					if (batch_size == std::numeric_limits<unsigned>::max()) {
 						batch_size = tmp;
 					} else {
-						throw std::exception("Different batch sizes (input layer) is not allowed!");
+						throw std::runtime_error("Different batch sizes (input layer) is not allowed!");
 					}
 				}
 			}
@@ -166,7 +169,7 @@ namespace nn
 					if (batch_size == std::numeric_limits<unsigned>::max()) {
 						batch_size = tmp;
 					} else {
-						throw std::exception("Different batch sizes (output layer) is not allowed!");
+						throw std::runtime_error("Different batch sizes (output layer) is not allowed!");
 					}
 				}
 			}

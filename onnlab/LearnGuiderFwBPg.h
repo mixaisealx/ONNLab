@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <cmath>
+#include <stdexcept>
 
 namespace nn
 {
@@ -103,7 +104,7 @@ namespace nn
 							layers(layers),
 							ecalc(error_calculator),
 							batch_size(batch_size), outs((*(layers.end() - 1))->Neurons()) {
-			if (batch_size == 0) throw std::exception("batch_size cannot be zero!");
+			if (batch_size == 0) throw std::runtime_error("batch_size cannot be zero!");
 			weight_delta_bp.resize(batch_size);
 			weight_delta_hdbp.resize(batch_size);
 			weight_delta_optim.resize(batch_size);
@@ -113,14 +114,14 @@ namespace nn
 			layers(layers),
 			batch_size(batch_size), outs((*(layers.end() - 1))->Neurons()) {
 			ecalc = nullptr;
-			if (batch_size == 0) throw std::exception("batch_size cannot be zero!");
+			if (batch_size == 0) throw std::runtime_error("batch_size cannot be zero!");
 			weight_delta_bp.resize(batch_size);
 			weight_delta_hdbp.resize(batch_size);
 			weight_delta_optim.resize(batch_size);
 		}
 
 		void SetBatchSize(unsigned batch_size) {
-			if (batch_size == 0) throw std::exception("batch_size cannot be zero!");
+			if (batch_size == 0) throw std::runtime_error("batch_size cannot be zero!");
 			weight_delta_bp.resize(batch_size);
 			weight_delta_hdbp.resize(batch_size);
 			weight_delta_optim.resize(batch_size);
@@ -133,7 +134,7 @@ namespace nn
 		
 		float FillupOutsError(const std::vector<float> &perfect_result, unsigned channel = 0, bool perform_loss_calculation = false) {
 			if (!ecalc || perfect_result.size() != outs.size()) {
-				throw std::exception("FillupOutsError is not ready!");
+				throw std::runtime_error("FillupOutsError is not ready!");
 			}
 			float loss = 0;
 			ecalc->ResetState();

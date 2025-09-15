@@ -4,6 +4,9 @@
 #include "OptimizerI.h"
 #include "BatchNeuronBasicI.h"
 
+#include <limits>
+#include <stdexcept>
+
 namespace nn
 {
 	template<interfaces::OptimizerInherit OptimizerT>
@@ -30,7 +33,7 @@ namespace nn
 					if (fromb != std::numeric_limits<unsigned>::max() &&
 						tob != std::numeric_limits<unsigned>::max() &&
 						fromb != tob) {
-						throw std::exception("Different batch sizes is not allowed!");
+						throw std::runtime_error("Different batch sizes is not allowed!");
 					}
 					NBI_AddOutputConnection(from, this);
 					NBI_AddInputConnection(to, this);
@@ -59,11 +62,11 @@ namespace nn
 				}
 
 				void Weight(float weight) override {
-					throw std::exception("Changing hyper-connection weight from the part is not safe so is not allowed!");
+					throw std::runtime_error("Changing hyper-connection weight from the part is not safe so is not allowed!");
 				}
 
 				void WeightOptimReset() override {
-					throw std::exception("Resetting hyper-connection optimizer from the part is not safe so is not allowed!");
+					throw std::runtime_error("Resetting hyper-connection optimizer from the part is not safe so is not allowed!");
 				}
 
 				void WeightOptimDoUpdate(float gradient) override {

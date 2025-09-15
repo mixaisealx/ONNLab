@@ -6,6 +6,7 @@
 #include <array>
 #include <algorithm>
 #include <functional>
+#include <stdexcept>
 
 namespace nn
 {
@@ -16,15 +17,15 @@ namespace nn
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 
 		void AddInputConnection(interfaces::ConnectionBasicInterface *) override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		void RemoveInputConnection(interfaces::ConnectionBasicInterface *) override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		const std::vector<interfaces::ConnectionBasicInterface *> &InputConnections() override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		float ActivationFunction(float x) const override {
@@ -47,7 +48,7 @@ namespace nn
 		NNB_InputB &operator=(const NNB_InputB &) = delete;
 		public:
 			NNB_InputB(float values_storage_array[], unsigned count = 1) {
-				if (count > BATCH_SIZE || count == 0) throw std::exception("Batch initializer bigger than batch size or zero!");
+				if (count > BATCH_SIZE || count == 0) throw std::runtime_error("Batch initializer bigger than batch size or zero!");
 				current_batch_size = count;
 				for (unsigned i = 0; i != count; ++i) {
 					values_source[i] = values_storage_array + i;
@@ -55,7 +56,7 @@ namespace nn
 			}
 
 			NNB_InputB(std::initializer_list<float *> values_sources) {
-				if (values_sources.size() > BATCH_SIZE || values_sources.size() == 0) throw std::exception("Batch initializer bigger than batch size or zero!");
+				if (values_sources.size() > BATCH_SIZE || values_sources.size() == 0) throw std::runtime_error("Batch initializer bigger than batch size or zero!");
 				current_batch_size = values_sources.size();
 				std::copy(values_sources.begin(), values_sources.end(), values_source.begin());
 			}
@@ -64,7 +65,7 @@ namespace nn
 			NNB_InputB(std::function<void(float **storage, unsigned capacity, unsigned &used_capacity)> initializer) {
 				unsigned count;
 				initializer(values_source.data(), BATCH_SIZE, count);
-				if (count > BATCH_SIZE || count == 0) throw std::exception("Batch initializer bigger than batch size or zero!");
+				if (count > BATCH_SIZE || count == 0) throw std::runtime_error("Batch initializer bigger than batch size or zero!");
 				current_batch_size = count;
 			}
 			
@@ -113,7 +114,7 @@ namespace nn
 				if (batch_size && batch_size <= BATCH_SIZE)
 					current_batch_size = batch_size;
 				else
-					throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+					throw std::runtime_error("batch_size cannot be zero or greater than BATCH_SIZE!");
 			}
 	};
 

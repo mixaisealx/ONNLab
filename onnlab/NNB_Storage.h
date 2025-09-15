@@ -7,6 +7,9 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <type_traits>
+#include <stdexcept>
+#include <variant>
 
 namespace nn
 {
@@ -19,15 +22,15 @@ namespace nn
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 
 		void AddInputConnection(interfaces::ConnectionBasicInterface *) override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		void RemoveInputConnection(interfaces::ConnectionBasicInterface *) override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		const std::vector<interfaces::ConnectionBasicInterface *> &InputConnections() override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		void AddOutputConnection(interfaces::ConnectionBasicInterface *output) override {
@@ -42,7 +45,7 @@ namespace nn
 		NNB_StorageB &operator=(const NNB_StorageB &) = delete;
 	public:
 		NNB_StorageB(unsigned batch_size = BATCH_SIZE):current_batch_size(batch_size) {
-			if (batch_size > BATCH_SIZE || batch_size == 0) throw std::exception("batch_size bigger than max batch size or is zero!");
+			if (batch_size > BATCH_SIZE || batch_size == 0) throw std::runtime_error("batch_size bigger than max batch size or is zero!");
 			std::fill_n(value.begin(), current_batch_size, 0.0f);
 			std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
 			if constexpr (KahanErrorSummation) {
@@ -124,7 +127,7 @@ namespace nn
 					std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), current_batch_size, 0.0f);
 				}
 			} else
-				throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+				throw std::runtime_error("batch_size cannot be zero or greater than BATCH_SIZE!");
 		}
 	};
 

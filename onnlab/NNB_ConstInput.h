@@ -2,6 +2,9 @@
 #include "NNBasicsInterfaces.h"
 #include "BatchNeuronBasicI.h"
 
+#include <limits>
+#include <stdexcept>
+
 namespace nn
 {
 	template <float value>
@@ -9,15 +12,15 @@ namespace nn
 		std::vector<interfaces::ConnectionBasicInterface *> outputs;
 
 		void AddInputConnection(interfaces::ConnectionBasicInterface *) override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		void RemoveInputConnection(interfaces::ConnectionBasicInterface *) override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		const std::vector<interfaces::ConnectionBasicInterface *> &InputConnections() override {
-			throw std::exception("Logic error! InputConnection on Input neuron!");
+			throw std::runtime_error("Logic error! InputConnection on Input neuron!");
 		}
 
 		float ActivationFunction(float) const override {

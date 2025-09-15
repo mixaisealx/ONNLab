@@ -2,6 +2,8 @@
 #include "NNBasicsInterfaces.h"
 #include "AtomicSpinlock.h"
 
+#include <limits>
+
 namespace nn::netquality
 {
 	inline unsigned short NeuroArgmax(const std::vector<nn::interfaces::NBI *> &neurons, unsigned channel) {

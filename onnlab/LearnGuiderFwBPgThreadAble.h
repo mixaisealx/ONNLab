@@ -3,6 +3,8 @@
 #include "AtomicSpinlock.h"
 
 #include <barrier>
+#include <cmath>
+#include <stdexcept>
 
 namespace nn
 {
@@ -11,7 +13,7 @@ namespace nn
 		LearnGuiderFwBPgThreadAble(std::initializer_list<interfaces::BasicLayerInterface *> layers, unsigned batch_size, unsigned threads_count): threads_count(threads_count),
 							layers(layers),
 							batch_size(batch_size), outs((*(layers.end() - 1))->Neurons()) {
-			if (batch_size == 0) throw std::exception("batch_size cannot be zero!");
+			if (batch_size == 0) throw std::runtime_error("batch_size cannot be zero!");
 
 			threads_barrier = new std::barrier<>(threads_count);
 
@@ -44,7 +46,7 @@ namespace nn
 
 		void SetThreadsCount(unsigned threads_count) {
 			if (!threads_count)
-				throw std::exception("Zero threads count!");
+				throw std::runtime_error("Zero threads count!");
 
 			if (this->threads_count != threads_count) {
 				this->threads_count = threads_count;
@@ -63,7 +65,7 @@ namespace nn
 		}
 
 		void SetBatchSize(unsigned batch_size) {
-			if (!batch_size) throw std::exception("batch_size cannot be zero!");
+			if (!batch_size) throw std::runtime_error("batch_size cannot be zero!");
 			this->batch_size = batch_size;
 		}
 

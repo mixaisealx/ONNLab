@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <barrier>
 #include <thread>
+#include <limits>
+#include <stdexcept>
 
 namespace nn
 {
@@ -31,11 +33,11 @@ namespace nn
 		NNB_ConvolutionMinMaxPoolingHead &operator=(const NNB_ConvolutionMinMaxPoolingHead &) = delete;
 
 		const std::vector<nn::interfaces::NBI *> &Neurons() override {
-			throw std::exception("Neurons not allowed in ConvolutionHead!");
+			throw std::runtime_error("Neurons not allowed in ConvolutionHead!");
 		}
 
 		void AddNeuron(nn::interfaces::NeuronBasicInterface *) override {
-			throw std::exception("AddNeuron not allowed in ConvolutionHead!");
+			throw std::runtime_error("AddNeuron not allowed in ConvolutionHead!");
 		}
 
 		void BatchSizeUpdatedNotify(unsigned new_size) override {
@@ -58,7 +60,7 @@ namespace nn
 	public:
 		NNB_ConvolutionMinMaxPoolingHead(nn::interfaces::BasicConvolutionEssenceI *frame):frame(frame) {
 			if (frame->GetKernelsCount() != 1) {
-				throw std::exception("Frame's Kernels Count number is wrong for pooling! It must be exactly equal to one!");
+				throw std::runtime_error("Frame's Kernels Count number is wrong for pooling! It must be exactly equal to one!");
 			}
 			places_count = frame->GetPlacesCount();
 			kernel_size = frame->GetKernelSize();
@@ -84,7 +86,7 @@ namespace nn
 
 		void PushWeights(const std::vector<float> &weights) override {
 			if (!weights.empty()) {
-				throw std::exception("Weights vector have a wrong size!");
+				throw std::runtime_error("Weights vector have a wrong size!");
 			}
 		}
 
@@ -310,7 +312,7 @@ namespace nn
 
 		void SetThreadsCount(unsigned threads_count) override {
 			if (!threads_count)
-				throw std::exception("Zero threads count!");
+				throw std::runtime_error("Zero threads count!");
 
 			this->threads_count = threads_count;
 		}

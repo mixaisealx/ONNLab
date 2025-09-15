@@ -4,6 +4,7 @@
 #include "Monotonic2FieldsHeuristicsI.h"
 
 #include <functional>
+#include <stdexcept>
 
 namespace nn
 {
@@ -69,7 +70,7 @@ namespace nn
 			unsigned mnls = non_monothonic_layer->Neurons().size();
 
 			if (monothonic_equvivalent_layer->Neurons().size() != mnls * 2)
-				throw std::exception("Count of neurons in equivalent layer must be 2 times bigger than in non-motonic!");
+				throw std::runtime_error("Count of neurons in equivalent layer must be 2 times bigger than in non-motonic!");
 
 			auto &vec_nmn = non_monothonic_layer->Neurons();
 			auto &vec_men = monothonic_equvivalent_layer->Neurons();

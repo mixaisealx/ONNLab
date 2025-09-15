@@ -7,6 +7,7 @@
 #include <vector>
 #include <span>
 #include <functional>
+#include <stdexcept>
 
 namespace nn
 {
@@ -18,7 +19,7 @@ namespace nn
 		bool hasTrainable;
 
 		void AddNeuron(interfaces::NeuronBasicInterface *neuron) override {
-			throw std::exception("AddNeuron not allowed in NeuronHoldingStaticLayer!");
+			throw std::runtime_error("AddNeuron not allowed in NeuronHoldingStaticLayer!");
 		}
 
 		NeuronHoldingStaticLayer(const NeuronHoldingStaticLayer &) = delete;

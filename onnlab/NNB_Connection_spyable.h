@@ -10,13 +10,13 @@ namespace nn
 
 	public:
 		NNB_Connection_spyable(interfaces::NeuronBasicInterface *from, interfaces::NeuronBasicInterface *to, float optimizer_learning_rate = 0.1f, float weight = 0.0f):
-			NNB_Connection(from, to, optimizer_learning_rate, weight) {
+			NNB_Connection<OptimizerT>(from, to, optimizer_learning_rate, weight) {
 		}
 
 		float last_gradient = 0;
 
 		void WeightOptimDoUpdate(float gradient) override {
-			NNB_Connection::WeightOptimDoUpdate(gradient);
+			NNB_Connection<OptimizerT>::WeightOptimDoUpdate(gradient);
 			last_gradient = gradient;
 		}
 	};

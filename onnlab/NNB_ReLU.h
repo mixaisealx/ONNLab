@@ -5,6 +5,10 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
+#include <type_traits>
+#include <stdexcept>
+#include <variant>
 
 namespace nn
 {
@@ -42,8 +46,8 @@ namespace nn
 		NNB_ReLUb &operator=(const NNB_ReLUb &) = delete;
 		public:
 			NNB_ReLUb(float negative_multiplier = 0.01f, unsigned batch_size = BATCH_SIZE):negative_multiplier(negative_multiplier), current_batch_size(batch_size) {
-				if (batch_size > BATCH_SIZE || batch_size == 0) throw std::exception("batch_size bigger than max batch size or is zero!");
-				if (negative_multiplier <= 0.0f || negative_multiplier >= 1.0f) throw std::exception("negative_multiplier must be in range (0, 1)!");
+				if (batch_size > BATCH_SIZE || batch_size == 0) throw std::runtime_error("batch_size bigger than max batch size or is zero!");
+				if (negative_multiplier <= 0.0f || negative_multiplier >= 1.0f) throw std::runtime_error("negative_multiplier must be in range (0, 1)!");
 				std::fill_n(accumulator.begin(), current_batch_size, 0.0f);
 				std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
 				if constexpr (KahanErrorSummation) {
@@ -138,7 +142,7 @@ namespace nn
 						nrn = dynamic_cast<interfaces::BatchNeuronBasicI *>(elem->From());
 						tmp = (nrn ? nrn->GetCurrentBatchSize() : 1);
 						if (tmp != batch_size && tmp != std::numeric_limits<unsigned>::max()) {
-							throw std::exception("Different batch sizes (batch_size vs \"input layer\") is not allowed!");
+							throw std::runtime_error("Different batch sizes (batch_size vs \"input layer\") is not allowed!");
 						}
 					}
 					current_batch_size = batch_size;
@@ -148,7 +152,7 @@ namespace nn
 						std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), current_batch_size, 0.0f);
 					}
 				} else
-					throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+					throw std::runtime_error("batch_size cannot be zero or greater than BATCH_SIZE!");
 			}
 	};
 

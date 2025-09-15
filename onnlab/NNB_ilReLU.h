@@ -4,6 +4,12 @@
 #include "LimitedNeuronI.h"
 #include "BatchNeuronBasicI.h"
 
+#include <limits>
+#include <type_traits>
+#include <stdexcept>
+#include <variant>
+#include <array>
+
 namespace nn
 {
 	// immortal limited ReLU
@@ -47,7 +53,7 @@ namespace nn
 				hidden_error_backprop_factor(hidden_error_backprop_factor),
 				backprop_overkill_factor(backprop_overkill_factor),
 				current_batch_size(batch_size) {
-				if (batch_size > BATCH_SIZE || batch_size == 0) throw std::exception("batch_size bigger than max batch size or is zero!");
+				if (batch_size > BATCH_SIZE || batch_size == 0) throw std::runtime_error("batch_size bigger than max batch size or is zero!");
 				std::fill_n(accumulator.begin(), current_batch_size, 0.0f);
 				std::fill_n(backprop_error_accumulator.begin(), current_batch_size, 0.0f);
 				if constexpr (KahanErrorSummation) {
@@ -166,7 +172,7 @@ namespace nn
 						nrn = dynamic_cast<interfaces::BatchNeuronBasicI *>(elem->From());
 						tmp = (nrn ? nrn->GetCurrentBatchSize() : 1);
 						if (tmp != batch_size && tmp != std::numeric_limits<unsigned>::max()) {
-							throw std::exception("Different batch sizes (batch_size vs \"input layer\") is not allowed!");
+							throw std::runtime_error("Different batch sizes (batch_size vs \"input layer\") is not allowed!");
 						}
 					}
 					current_batch_size = batch_size;
@@ -176,7 +182,7 @@ namespace nn
 						std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), current_batch_size, 0.0f);
 					}
 				} else
-					throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+					throw std::runtime_error("batch_size cannot be zero or greater than BATCH_SIZE!");
 			}
 	};
 

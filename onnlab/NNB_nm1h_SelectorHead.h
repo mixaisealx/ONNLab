@@ -6,6 +6,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <cmath>
+#include <limits>
+#include <stdexcept>
 
 namespace nn
 {
@@ -271,7 +274,7 @@ namespace nn
 
 		void NormalizeOwnLevel() {
 			if constexpr (standalone) {
-				throw std::exception("Logic error! NormalizeOwnLevel must not be used in standalone mode!");
+				throw std::runtime_error("Logic error! NormalizeOwnLevel must not be used in standalone mode!");
 			} else {
 				if (std::isnan(single_output)) {
 					void *largest_dist_conn = nullptr;
@@ -328,10 +331,10 @@ namespace nn
 
 		void TransferCurrentInputToAnotherNeuron(unsigned current_neuron_index, unsigned new_neuron_index) {
 			if (std::isnan(inputs[current_neuron_index]->From()->OwnLevel())) {
-				throw std::exception("Logic error! TransferCurrentInputToAnotherNeuron source is NaN!");
+				throw std::runtime_error("Logic error! TransferCurrentInputToAnotherNeuron source is NaN!");
 			}
 			if (!std::isnan(inputs[new_neuron_index]->From()->OwnLevel())) {
-				throw std::exception("Logic error! TransferCurrentInputToAnotherNeuron destination is not NaN!");
+				throw std::runtime_error("Logic error! TransferCurrentInputToAnotherNeuron destination is not NaN!");
 			}
 			dynamic_cast<nn::interfaces::SelectableInputInterface *>(inputs[current_neuron_index]->From())->Accumulator_make_NaN();
 			dynamic_cast<nn::interfaces::SelectableInputInterface *>(inputs[new_neuron_index]->From())->Accumulator_make_unNaN();
@@ -348,7 +351,7 @@ namespace nn
 
 		const std::vector<Candidate> &RetriveCandidates() override {
 			if constexpr (standalone) {
-				throw std::exception("Logic error! RetriveCandidates must not be used in standalone mode!");
+				throw std::runtime_error("Logic error! RetriveCandidates must not be used in standalone mode!");
 			} else {
 				return output_values;
 			}
@@ -356,7 +359,7 @@ namespace nn
 
 		void SelectBestCandidate(void *id, float error) override {
 			if constexpr (standalone) {
-				throw std::exception("Logic error! SelectBestCandidate must not be used in standalone mode!");
+				throw std::runtime_error("Logic error! SelectBestCandidate must not be used in standalone mode!");
 			} else {
 				for (auto item : inputs) {
 					if (item != id) {
@@ -377,7 +380,7 @@ namespace nn
 			if constexpr (standalone) {
 				backprop_error_accumulator += error;
 			} else {
-				throw std::exception("Logic error! BackPropAccumulateError must not be used in non-standalone mode!");
+				throw std::runtime_error("Logic error! BackPropAccumulateError must not be used in non-standalone mode!");
 			}
 		}
 

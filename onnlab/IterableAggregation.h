@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <memory>
+#include <limits>
+#include <stdexcept>
 
 template<typename IteratorValueType>
 class IterableAggregation {
@@ -85,20 +87,18 @@ public:
 		using reference = IteratorValueType &;
 
 		IteratorValueType operator*() {
-			if (end) throw std::exception("End have no value!");
-			if (parent_appends_count != parent->appends_count) throw std::exception("Iterator is invalid!");
+			if (end) throw std::runtime_error("End have no value!");
+			if (parent_appends_count != parent->appends_count) throw std::runtime_error("Iterator is invalid!");
 			return item->CurrentValue();
 		}
 		Iterator &operator++() {
-			if (end) throw std::exception("Already on the end!");
-			if (parent_appends_count != parent->appends_count) throw std::exception("Iterator is invalid!");
+			if (end) throw std::runtime_error("Already on the end!");
+			if (parent_appends_count != parent->appends_count) throw std::runtime_error("Iterator is invalid!");
 			
 			if (item->Next()) {
 				return *this;
-			} else if (item_idx == parent_appends_count) {
-				this->end = true;
-				
 			}
+
 			while (true) {
 				if (++item_idx == parent_appends_count) {
 					this->end = true;
@@ -106,7 +106,7 @@ public:
 				}
 				item = parent->items[item_idx];
 				if (item->IsBusy()) {
-					throw std::exception("Some iterators are already in use!");
+					throw std::runtime_error("Some iterators are already in use!");
 				}
 				if (item->Next()) {
 					return *this;
@@ -142,7 +142,7 @@ public:
 					}
 					item = parent->items[item_idx];
 					if (item->IsBusy()) {
-						throw std::exception("Some iterators are already in use!");
+						throw std::runtime_error("Some iterators are already in use!");
 					}
 					if (item->Next()) {
 						break;

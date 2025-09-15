@@ -8,6 +8,7 @@
 #include <vector>
 #include <span>
 #include <functional>
+#include <stdexcept>
 
 namespace nn
 {
@@ -29,7 +30,7 @@ namespace nn
 								  LayerAlignment alignment = LayerAlignment::HALF) {
 			
 			if (layer1->Neurons().size() != layer2->Neurons().size() * 2)
-				throw std::exception("Count of neurons in layer1 must be 2 times bigger than in layer2!");
+				throw std::runtime_error("Count of neurons in layer1 must be 2 times bigger than in layer2!");
 
 			size_t connections_count = layer1->Neurons().size();
 			storage_base = reinterpret_cast<ConnectionT*>(malloc(connections_count * sizeof(ConnectionT))); // Yes, I know about possible nullptr, BUT it is only lab code

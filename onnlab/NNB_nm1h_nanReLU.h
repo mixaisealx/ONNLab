@@ -3,6 +3,8 @@
 #include "BasicBackPropgI.h"
 #include "SelectableInputI.h"
 
+#include <cmath>
+#include <limits>
 
 namespace nn
 {

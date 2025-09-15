@@ -6,6 +6,9 @@
 #include "BasicBackPropgI.h"
 #include "BatchNeuronBasicI.h"
 
+#include <limits>
+#include <stdexcept>
+
 namespace nn
 {
 	class NNB_ConvolutionEssence1d : public nn::interfaces::BasicConvolutionEssenceI {
@@ -30,22 +33,22 @@ namespace nn
 								 unsigned kernel_size, unsigned kernels_count = 1, unsigned stride = 1, unsigned dilation = 1, bool allow_input_kernel_underfit = false):input_layer(input_layer), output_layer(output_layer), kernel_size(kernel_size), kernels_count(kernels_count), stride(stride), dilation(dilation) {
 
 			if (kernel_size < 2 || !stride || !dilation) {
-				throw std::exception("Zeros in stride, dilation and kernel_size < 2 is not allowed!");
+				throw std::runtime_error("Zeros in stride, dilation and kernel_size < 2 is not allowed!");
 			}
 			this->RecalcBatchSize();
 
 			for (auto elem : output_layer->Neurons()) {
 				if (!dynamic_cast<nn::interfaces::InputNeuronI *>(elem) || !dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(elem)) {
-					throw std::exception("The output layer must consist of neurons based on interfaces::InputNeuronI!");
+					throw std::runtime_error("The output layer must consist of neurons based on interfaces::InputNeuronI!");
 				}
 			}
 
 			unsigned emplaceable_size = input_layer->Neurons().size() - (kernel_size + (kernel_size - 1) * (dilation - 1));
 			places_count = emplaceable_size / stride + 1;
 			if (!allow_input_kernel_underfit && emplaceable_size % stride) { // Check if layers have appropriate sizes
-				throw std::exception("That kernel_size and stride in not appropriate for input layer of such size!");
+				throw std::runtime_error("That kernel_size and stride in not appropriate for input layer of such size!");
 			} else if (places_count * kernels_count != output_layer->Neurons().size()) {
-				throw std::exception("The input layer in not appropriate for output layer of such size!");
+				throw std::runtime_error("The input layer in not appropriate for output layer of such size!");
 			}
 		}
 
@@ -68,7 +71,7 @@ namespace nn
 					if (batch_size == std::numeric_limits<unsigned>::max()) {
 						batch_size = tmp;
 					} else {
-						throw std::exception("Different batch sizes (input layer) is not allowed!");
+						throw std::runtime_error("Different batch sizes (input layer) is not allowed!");
 					}
 				}
 			}
@@ -79,7 +82,7 @@ namespace nn
 					if (batch_size == std::numeric_limits<unsigned>::max()) {
 						batch_size = tmp;
 					} else {
-						throw std::exception("Different batch sizes (output layer) is not allowed!");
+						throw std::runtime_error("Different batch sizes (output layer) is not allowed!");
 					}
 				}
 			}

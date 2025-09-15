@@ -2,6 +2,9 @@
 #include "NNBasicsInterfaces.h"
 #include "BasicWghOptI.h"
 
+#include <limits>
+#include <stdexcept>
+
 namespace nn
 {
 	template<float weight>
@@ -20,7 +23,7 @@ namespace nn
 			if (fromb != std::numeric_limits<unsigned>::max() &&
 				tob != std::numeric_limits<unsigned>::max() &&
 				fromb != tob) {
-				throw std::exception("Different batch sizes is not allowed!");
+				throw std::runtime_error("Different batch sizes is not allowed!");
 			}
 			NBI_AddOutputConnection(from, this);
 			NBI_AddInputConnection(to, this);
@@ -47,7 +50,7 @@ namespace nn
 
 		void Weight(float) override {
 			// Compatibility plug
-			//throw std::exception("Logic error! StraightConnection weight can not be set (it is always 1.0)!");
+			//throw std::runtime_error("Logic error! StraightConnection weight can not be set (it is always 1.0)!");
 		}
 
 		void WeightOptimReset() override {

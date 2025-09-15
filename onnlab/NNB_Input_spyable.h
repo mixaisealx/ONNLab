@@ -2,6 +2,11 @@
 #include "NNB_Input.h"
 #include "BasicBackPropgI.h"
 
+#include <type_traits>
+#include <stdexcept>
+#include <variant>
+#include <array>
+
 namespace nn
 {
 	template<unsigned BATCH_SIZE, bool KahanErrorSummation = false> requires (BATCH_SIZE > 0)
@@ -68,7 +73,7 @@ namespace nn
 					std::fill_n(backprop_error_accumulator_kahan_compensation.begin(), this->GetCurrentBatchSize(), 0.0f);
 				}
 			} else
-				throw std::exception("batch_size cannot be zero or greater than BATCH_SIZE!");
+				throw std::runtime_error("batch_size cannot be zero or greater than BATCH_SIZE!");
 		}
 	};
 

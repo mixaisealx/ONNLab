@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <barrier>
 #include <thread>
+#include <stdexcept>
 
 namespace nn
 {
@@ -48,15 +49,15 @@ namespace nn
 		NNB_ConvolutionHead &operator=(const NNB_ConvolutionHead &) = delete;
 
 		const std::vector<nn::interfaces::NBI *> &Neurons() override {
-			throw std::exception("Neurons not allowed in ConvolutionHead!");
+			throw std::runtime_error("Neurons not allowed in ConvolutionHead!");
 		}
 
 		void AddNeuron(nn::interfaces::NeuronBasicInterface *) override {
-			throw std::exception("AddNeuron not allowed in ConvolutionHead!");
+			throw std::runtime_error("AddNeuron not allowed in ConvolutionHead!");
 		}
 
 		void WeightOptimDoUpdate(float) override {
-			throw std::exception("WeightOptimDoUpdate not allowed in ConvolutionHead!");
+			throw std::runtime_error("WeightOptimDoUpdate not allowed in ConvolutionHead!");
 		}
 
 		void BatchSizeUpdatedNotify(unsigned new_size) override {
@@ -144,7 +145,7 @@ namespace nn
 
 		void PushWeights(const std::vector<float> &weights) override {
 			if (weights.size() != CalcWeightsCount()) {
-				throw std::exception("Weights vector have a wrong size!");
+				throw std::runtime_error("Weights vector have a wrong size!");
 			}
 			auto current = weights.cbegin();
 			// Restoring biases
@@ -425,7 +426,7 @@ namespace nn
 
 		void SetThreadsCount(unsigned threads_count) override {
 			if (!threads_count)
-				throw std::exception("Zero threads count!");
+				throw std::runtime_error("Zero threads count!");
 
 			if (this->threads_count != threads_count) {
 				this->threads_count = threads_count;

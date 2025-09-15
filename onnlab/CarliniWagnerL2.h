@@ -11,6 +11,7 @@
 #include <thread>
 #include <barrier>
 #include <atomic>
+#include <stdexcept>
 
 
 namespace nn::reverse
@@ -138,7 +139,7 @@ namespace nn::reverse
 			nninputs_ip.reserve(nninputs.size());
 			for (auto elem : nninputs) {
 				if (!dynamic_cast<nn::interfaces::InputNeuronI *>(elem) || !dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(elem)) {
-					throw std::exception("The input layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
+					throw std::runtime_error("The input layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
 				}
 				nninputs_ip.push_back(dynamic_cast<interfaces::InputNeuronI *>(elem));
 				nninputs_bp.push_back(dynamic_cast<interfaces::BasicBackPropogableInterface *>(elem));
@@ -147,7 +148,7 @@ namespace nn::reverse
 			nnoutputs_bp.reserve(nnoutputs.size());
 			for (auto elem : nnoutputs) {
 				if (!dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(elem)) {
-					throw std::exception("The output layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
+					throw std::runtime_error("The output layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
 				}
 				nnoutputs_bp.push_back(dynamic_cast<interfaces::BasicBackPropogableInterface *>(elem));
 			}
@@ -163,7 +164,7 @@ namespace nn::reverse
 			std::vector<std::vector<float>> best_attack(batch_size); // For RVO
 
 			if (input_batch.size() != batch_size || target_classes.size() != batch_size) {
-				throw std::exception("input_batch size != batch_size or target_classes size != batch_size");
+				throw std::runtime_error("input_batch size != batch_size or target_classes size != batch_size");
 			}
 
 			std::vector<std::vector<float>> current_attack(batch_size, std::vector<float>(nninputs.size()));
@@ -441,7 +442,7 @@ namespace nn::reverse
 			nninputs_ip.reserve(nninputs.size());
 			for (auto elem : nninputs) {
 				if (!dynamic_cast<nn::interfaces::InputNeuronI *>(elem) || !dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(elem)) {
-					throw std::exception("The input layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
+					throw std::runtime_error("The input layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
 				}
 				nninputs_ip.push_back(dynamic_cast<interfaces::InputNeuronI *>(elem));
 				nninputs_bp.push_back(dynamic_cast<interfaces::BasicBackPropogableInterface *>(elem));
@@ -450,7 +451,7 @@ namespace nn::reverse
 			nnoutputs_bp.reserve(nnoutputs.size());
 			for (auto elem : nnoutputs) {
 				if (!dynamic_cast<nn::interfaces::BasicBackPropogableInterface *>(elem)) {
-					throw std::exception("The output layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
+					throw std::runtime_error("The output layer must consist of neurons based on interfaces::BasicBackPropogableInterface!");
 				}
 				nnoutputs_bp.push_back(dynamic_cast<interfaces::BasicBackPropogableInterface *>(elem));
 			}
@@ -466,7 +467,7 @@ namespace nn::reverse
 			std::vector<std::vector<float>> best_attack(batch_size); // For RVO
 
 			if (input_batch.size() != batch_size || target_classes.size() != batch_size) {
-				throw std::exception("input_batch size != batch_size or target_classes size != batch_size");
+				throw std::runtime_error("input_batch size != batch_size or target_classes size != batch_size");
 			}
 
 			model.SetThreadsCount(threads_count);

@@ -4,6 +4,9 @@
 #include "OptimizerI.h"
 #include "BatchNeuronBasicI.h"
 
+#include <limits>
+#include <stdexcept>
+
 namespace nn
 {
 	template<interfaces::OptimizerInherit OptimizerT>
@@ -25,7 +28,7 @@ namespace nn
 			if (fromb != std::numeric_limits<unsigned>::max() &&
 				tob != std::numeric_limits<unsigned>::max() && 
 				fromb != tob) {
-				throw std::exception("Different batch sizes is not allowed!");
+				throw std::runtime_error("Different batch sizes is not allowed!");
 			}
 			NBI_AddOutputConnection(from, this);
 			NBI_AddInputConnection(to, this);
